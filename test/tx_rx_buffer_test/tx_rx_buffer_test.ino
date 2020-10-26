@@ -1,7 +1,6 @@
 
 //struct for transmitting and receiving data: 
 typedef struct controlData_t {
- // char cmd;
   float val1;
   float val2;
   float val3;
@@ -72,9 +71,7 @@ void receive(){
     }
 }
 }
-// Use retrieved value use following command:
-
-
+// get retrieved from buffer value using following command:
 void get_rx_data() {
   tempdata = rxbuffer.shift(); // get packet from buffer.
 }
@@ -116,8 +113,10 @@ void setup() {
   digitalWrite(4, LOW);
 }
 char temp;
-void loop(){
 
+
+
+void loop(){
   // set tx packet:
 
   //  Serial.println("Setting values for rx packet:  ");
@@ -130,6 +129,8 @@ void loop(){
   //printstruct(txdata.packet);
 
   // transmission:
+
+  
   if (digitalRead(1) == LOW) {
     digitalWrite(LED_BUILTIN, HIGH);
     Serial.println("transmit 1 packet:");
