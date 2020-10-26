@@ -34,6 +34,10 @@ ZIGBEE_Packet_t data;
 ZIGBEE_Packet_t rxdata;
 #define PACKET_SIZE sizeof(data.ZBPacket)
 
+// Buffer implementation: 
+
+
+
 
 
 void transmit() {
