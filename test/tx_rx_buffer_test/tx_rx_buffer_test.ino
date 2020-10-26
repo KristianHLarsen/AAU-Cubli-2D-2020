@@ -1,13 +1,13 @@
 
 //struct for transmitting and receiving data: 
-typedef struct controlData_t {
+struct controlData_t {
   float val1;
   float val2;
   float val3;
 };
 
 // struct for buffering and accessing data: 
-typedef struct controlData_full {
+struct controlData_full {
   uint8_t cmd;
   float val1;
   float val2;
@@ -24,8 +24,7 @@ void printstruct(controlData_full data) {
   Serial.print(", val3:  "); Serial.println(data.val3);
 }
 
-
-typedef union ZIGBEE_Packet_t {
+union ZIGBEE_Packet_t {
   controlData_t packet;
   uint8_t ZBPacket[sizeof(controlData_t)];
 };
@@ -50,9 +49,6 @@ void transmit(uint8_t cmd) {
   }
 }
 
-
-int badframe = 0;
-int frameid = 0;
 
 void receive(){
   if (Serial1.available() > PACKET_SIZE ) {
@@ -93,7 +89,7 @@ const unsigned long ts = 10; // time for each transmisssion:
 int count = 0;
 unsigned long tstart = 0; //test vars time keeping
 unsigned long tstop = 0; //test vars time keeping
-bool flag_time = 0;
+
 
 int N = 4; // used for checking the number of elements in the buffer.
 void setup() {
@@ -112,7 +108,7 @@ void setup() {
   digitalWrite(3, LOW);
   digitalWrite(4, LOW);
 }
-char temp;
+
 
 
 
@@ -128,9 +124,7 @@ void loop(){
 
   //printstruct(txdata.packet);
 
-  // transmission:
-
-  
+// transmission:
   if (digitalRead(1) == LOW) {
     digitalWrite(LED_BUILTIN, HIGH);
     Serial.println("transmit 1 packet:");
@@ -143,8 +137,9 @@ void loop(){
     delay(1000);
     digitalWrite(LED_BUILTIN, LOW);
   }
-  
-  receive(); // receive data;
+ // receive data;
+  receive(); 
+ //check buffer:  
   if (rxbuffer.size() > N ){
     Serial.println("Printing from buffer:");
     while (rxbuffer.isEmpty() != true) { // Print all elements in the buffer.
@@ -155,5 +150,4 @@ void loop(){
       Serial.print("Items in buffer: "); Serial.println(rxbuffer.size());
     }
   }
-
 }
