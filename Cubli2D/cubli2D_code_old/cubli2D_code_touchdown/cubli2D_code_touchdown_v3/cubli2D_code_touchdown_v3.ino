@@ -50,7 +50,7 @@ Servo brake;
 #define MPU_addr 0x68 //I2C address for the IMU. (CODE WILL BE STUCK IF NOT CORRECT!)
 double acc_angle_1[2] = {0, 0}, gyro_angle_1[2] = {0, 0}, comp_angle_1[2] = {0, 0}, AcX, AcY, GyZ, az, z;
 int ogsens, sensor = 0 ;  // 2 for imu and 1 for potentiometer, 0 for off
-float mean = 1.0, spw = 0.0, spf = 0.0, spf_imu = 0.0, spf_pot = 0.0, angle = 0.0, angle_last = 0.0, angle_speed = 0.0, ang_err = 0.0, curr = 0.0;
+float mean = 1.0, spw = 0.0, spf = 0.0, angle = 0.0, angle_last = 0.0, angle_speed = 0.0, ang_err = 0.0, curr = 0.0;
 
 //complementary filter
 double kc1, kc2, tau = 0.3471;
@@ -66,21 +66,17 @@ int sam_slut = 0;
 int timer_var = 0, time_now = 0, time_last = 0;
 
 // touchdown vars
-#define no_return_angle 8*3.14/180.0
-#define touchdown_acc 20 //between 0 and 40 
+#define TD_START_ANGLE 2*3.14/180.0 // angle at which the wheel starts rotating in the opposite direction of falling [rad]
 
-int last_sensor= 0;
-int touchdown_timer= 0;
+bool enable_touchdown = true; // Enables the touchdown procedure. 
+bool enable_touchdown_printing = false; // set True to print to serial monitor
+float touchdown_gain = 3*10.6286; //gain for amplifying the current to the motor for touchdown procedure
+int touchdown_timer = 0; 
 boolean touchdown_start= false;
 float touchdown_curr = 0;
-int touchdown_pwm = 50;
-bool enable_touchdown = true;
-float touchdown_gain = 3*10.6286;
+int touchdown_pwm = 50; // PWM 50 corresponds to 0 velocity on the motor
 boolean touchdown_brake = false;
-int touchdown_measurement_timer;
-
-
-
+int touchdown_measurement_timer = 0;
 
 
 void setup() {
@@ -117,7 +113,6 @@ void loop() {
   if (digitalRead(imuIn) == LOW) { // if IMU is choosen physically
     sensor = 2;
     ogsens = 2;
-    last_sensor= 2;
     samp_period = 2000; // sampling period
     touchdown_start = false;
     touchdown_brake = false;
@@ -125,7 +120,6 @@ void loop() {
   else if (digitalRead(potIn) == LOW) { // if POT is choosen physically
     sensor = 1;
     ogsens = 1;
-    last_sensor= 1;
     samp_period = 15000; // sampling period
     touchdown_start = false;
     touchdown_brake = false;
@@ -138,14 +132,15 @@ void loop() {
     standup();   //Did we fall? then rise.
   }
   if (!sensor) { // sytem is off
-    if(enable_touchdown) touchDown();
-    else digitalWrite(enable, LOW); // disable driver
-      print_touchdown_data();
+    if(enable_touchdown) touchDown(); //if enable_touchdown is set to true, call the touchDown() function
+    else
+    {
+      digitalWrite(enable, LOW); // disable driver
+      time_last = 0; // reset
+    }
+   if (enable_touchdown_printing) print_touchdown_data();  // prints data to the Serial Monitor
 
     timer_var = 0; // reset time
     time_now = 0;  // reset
-//    time_last = 0; // reset
-
-
   }
 }

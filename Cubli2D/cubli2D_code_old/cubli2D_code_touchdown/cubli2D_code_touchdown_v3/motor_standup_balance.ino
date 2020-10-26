@@ -2,6 +2,7 @@ float interpolate(float x, float in_min, float in_max, float out_min, float out_
   return (x - in_min) * (out_max - out_min) / (in_max - in_min) + out_min;
 }
 
+// returns speed of frame based on sensor
 float speed_frame() {
   if (sensor == 1 || sensor == 0) {
     time_now = micros();
@@ -13,8 +14,9 @@ float speed_frame() {
   return angle_speed;
 }
 
+// returns gyro speed of frame
 float speed_frame_imu() {
-  return (GyZ * 0.0174532925);  //Gyroscope is speed of frame
+  return (GyZ * 0.0174532925); 
 }
 
 void standup() {
@@ -106,6 +108,7 @@ void updateMotor() {
   sam_start = timer_var;
 }
 
+//fall down procedure
 void touchDown () {
 
   if(touchdown_start == false)
@@ -115,27 +118,30 @@ void touchDown () {
     touchdown_start = true;
   }
   ang_err =  angle_pot();
-//  Serial.print(ang_err);
 
   if (abs(ang_err) > recovery - 21*3.14/180 && !touchdown_brake)
   {
       brake.write(brk - 5); //brake motor hard to get up properly 
-//      delay(75);            //wait before disabling the brake
-      touchdown_measurement_timer = millis();
-      Serial.println("in loop");
-      while (millis() - touchdown_measurement_timer <= 75) // printing data to serial port while braking
-      {        
-        print_touchdown_data ();   
+
+      if(enable_touchdown_printing == true)
+      {
+        touchdown_measurement_timer = millis();
+        while (millis() - touchdown_measurement_timer <= 75) // printing data to serial port while braking
+        {        
+          print_touchdown_data ();   
+        }
       }
-      Serial.println("out of loop");
+      else
+      {
+         delay(75);            //wait before disabling the brake
+      }
       brake.write(go);      // release brake 
       touchdown_brake = true;
   }
 
 
   if (abs(ang_err) > recovery || millis() - touchdown_timer> 1200)
-    {
-//      Serial.println("Stopping now"); 
+    { 
       FPGA.analogWrite(PWM_PIN, map(50, 0, 100, pow(2, bits), 0)); //stop motor
       digitalWrite(enable, LOW); // disable driver
     }
@@ -150,20 +156,17 @@ void touchDown () {
   }  
 }
 
+//print measurement data while falling down
 void print_touchdown_data()
 {
     filter_setup();
-    
-    spf_pot = speed_frame();
-    ang_err =  angle_pot();
-    spf_imu = speed_frame_imu();
 
     Serial.print(millis());
     Serial.print("; ");
-    Serial.print(ang_err);
+    Serial.print(angle_pot()); //angle measurement from potentiometer
     Serial.print("; ");
-    Serial.print(spf_pot);
+    Serial.print(speed_frame()); //speed of the frame from potentiometer
     Serial.print("; ");
-    Serial.println(spf_imu);
-  
+    Serial.println(speed_frame_imu()); //speed of the frame from IMU
+
 }

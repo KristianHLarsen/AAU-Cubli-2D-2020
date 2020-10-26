@@ -36,20 +36,11 @@ void GetIMUData() {
 }
 
 float angle_pot() {
-  if (sensor == 1) angle = ((float)(analogRead(potPin) - 4.0) * (90.0 / 1023.0)) - 45.0;
+  if (sensor == 1 || sensor == 0) angle = ((float)(analogRead(potPin) - 4.0) * (90.0 / 1023.0)) - 45.0;
   if (sensor == 2) {
     complementary();
     angle = (comp_angle_1[0] + ANGLE_REF);
-  }
- 
-  if (sensor == 0){
-      angle = ((float)(analogRead(potPin) - 4.0) * (90.0 / 1023.0)) - 45.0;
-//    if (last_sensor == 1) angle = ((float)(analogRead(potPin) - 4.0) * (90.0 / 1023.0)) - 45.0;
-//    if (last_sensor == 2) {
-//      complementary();
-//      angle = (comp_angle_1[0] + ANGLE_REF);
-//    }
-  }
+  } 
   if (angle > 45.0)angle = 45.0;    //move to +- 45 degrees
   if ( angle < -45.0)angle = -45.0;
   return (angle * 0.0174532925);
