@@ -28,7 +28,7 @@
 #define reject 10
 #define step_size 0.1*0.01
 #define large_step_size 0.1*0.1
-float  ANGLE_REF = 0.5, cycle_speed[81];
+float  ANGLE_REF = 3, cycle_speed[81];
 int cycle = 0, reject_count = 0, running_average = 0;
 bool add_cycle = false;
 
