@@ -10,7 +10,7 @@ data = dlmread('balance_data_3.csv', ';');
 %% measurements
 % 1. Angle of frame - 3. Gyro speed of frame - 4. Speed of wheel
 z = transpose([(atan2(data(:,4), data(:,5)) - pi/4) , data(:,3), data(:,6)]);
-pot = data(:,2)*pi/180;
+pot = data(:,2)*(-pi)/180;
 filtered_ang_pos = data(:,7);
 % plot(z(:,1))
 % hold on
@@ -49,6 +49,15 @@ B(3) = (J_w+J_f+m_w*(l_w)^2)/(J_w*(J_f+m_w*(l_w)^2));
 
 u = data(:,7);
 
+C = eye(3);
+D = zeros(3,1);
+sys = ss(A,B,C,D);
+dt = 0.002; %% sampling time
+d_sys = c2d(sys,dt);
+
+A_d = d_sys.A;
+B_d = d_sys.B;
+
 %%%%%%%%%%%%%%%%% KALMAN FILTER %%%%%%%%%%%%%%%%%%%%%
 
 %%% initial guess of the state
@@ -61,7 +70,7 @@ H = eye(3);
 
 %%% Covariance of the noise in the measurement
 R = [0.0001 0 0;
-        0 1 0;
+        0 0.1 0;
         0 0 1];
 
 %%% Covariance of the noise in the process
@@ -69,15 +78,14 @@ Q = [1 0 0;
         0 1 0;
         0 0 1];
     
-Q = 0.0001*Q;
+Q = Q;
 
 
 for i = 2:length(u)
-    x_prior(:,i) = A*x_post(:,i-1) + B*u(i);
-    P_prior = A*P_post*transpose(A) + Q;
+    x_prior(:,i) = A_d*x_post(:,i-1) + B_d*u(i);
+    P_prior = A_d*P_post*transpose(A_d) + Q;
     K = P_prior * transpose(H) * ...
-           inv((H * P_prior * transpose(H) + R));
-    
+           inv((H * P_prior * transpose(H) + R));    
     x_post(:,i) = x_prior(:,i) + K*(z(:,i) - H*x_prior(:,i));
     P_post = P_prior - K*H*P_prior;
 end
@@ -85,4 +93,8 @@ end
 plot(x_post(1,:))
 hold on
 plot(filtered_ang_pos)
+hold on
+plot(pot)
+xlabel('time [ms]') 
+ylabel('\theta_F [rad]') 
  
