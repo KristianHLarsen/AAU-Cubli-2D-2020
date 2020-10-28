@@ -1,12 +1,12 @@
 
-//struct for transmitting and receiving data: 
+//struct for transmitting and receiving data:
 struct controlData_t {
   float val1;
   float val2;
   float val3;
 };
 
-// struct for buffering and accessing data: 
+// struct for buffering and accessing data:
 struct controlData_full {
   uint8_t cmd;
   float val1;
@@ -33,7 +33,7 @@ ZIGBEE_Packet_t rxdata;
 
 #define PACKET_SIZE sizeof(txdata.ZBPacket)
 
-// Buffer setup 
+// Buffer setup
 #include <CircularBuffer.h>
 #define BUFFER_SIZE 20
 controlData_full tempdata;
@@ -41,7 +41,7 @@ controlData_full rxdatafull;
 CircularBuffer<controlData_full, BUFFER_SIZE> rxbuffer;
 
 
-// Transmit function, takes command argument which is used for 
+// Transmit function, takes command argument which is used for
 void transmit(uint8_t cmd) {
   Serial1.write(cmd);
   for (int k = 0; k < PACKET_SIZE; k++) {
@@ -50,22 +50,22 @@ void transmit(uint8_t cmd) {
 }
 
 
-void receive(){
+void receive() {
   if (Serial1.available() > PACKET_SIZE ) {
     uint8_t cmdtemp = Serial1.read();
     if (cmdtemp == '<') {
-     // rxcmd= Serial.read();
+      // rxcmd= Serial.read();
       for (int k = 0; k < PACKET_SIZE; k++) {
         rxdata.ZBPacket[k] = Serial1.read();
       }
-    rxdatafull.cmd = cmd;
-    rxdatafull.val1 = rxdata.packet.val1;
-    rxdatafull.val2 = rxdata.packet.val2;
-    rxdatafull.val3 = rxdata.packet.val3;  
-    rxbuffer.push(rxdatafull);
-    cmdtemp = 0;
+      rxdatafull.cmd = cmd;
+      rxdatafull.val1 = rxdata.packet.val1;
+      rxdatafull.val2 = rxdata.packet.val2;
+      rxdatafull.val3 = rxdata.packet.val3;
+      rxbuffer.push(rxdatafull);
+      cmdtemp = 0;
     }
-}
+  }
 }
 // get retrieved from buffer value using following command:
 void get_rx_data() {
@@ -73,10 +73,10 @@ void get_rx_data() {
 }
 
 
-//XBEE setup: 
-void xbee_setup(){
+//XBEE setup:
+void xbee_setup() {
   Serial1.begin(115200);
-  int k = sizeof(txdata.ZBPacket)+1;
+  int k = sizeof(txdata.ZBPacket) + 1;
   delay(15000);
   Serial.print("Size of packet"); Serial.println(k);
   Serial.println("XBEE online");
@@ -96,7 +96,7 @@ void setup() {
 
   Serial.begin(115200);
   Serial1.begin(115200);
-  int k = sizeof(txdata.ZBPacket)+1;
+  int k = sizeof(txdata.ZBPacket) + 1;
   delay(3000);
   Serial.print("Size of packet"); Serial.println(k);
   pinMode(1, INPUT_PULLUP);
@@ -112,35 +112,35 @@ void setup() {
 
 
 
-void loop(){
+void loop() {
   // set tx packet:
 
   //  Serial.println("Setting values for rx packet:  ");
-   txdata.packet.val1 = 313.3445;
-   txdata.packet.val2 = 44.33;
-   txdata.packet.val3 = 14.312; 
-   cmd ='<';
-//   txdata.packet.cmd = 'C';
+  txdata.packet.val1 = 313.3445;
+  txdata.packet.val2 = 44.33;
+  txdata.packet.val3 = 14.312;
+  cmd = '<';
+  //   txdata.packet.cmd = 'C';
 
   //printstruct(txdata.packet);
 
-// transmission:
+  // transmission:
   if (digitalRead(1) == LOW) {
     digitalWrite(LED_BUILTIN, HIGH);
     Serial.println("transmit 1 packet:");
     delay(1000);
-    for(int i=0; i<N; i++){
-    transmit('<');
+    for (int i = 0; i < N; i++) {
+      transmit('<');
     }
     //while ((t0 + ts ) > micros()) {}
     // t0 = micros();
     delay(1000);
     digitalWrite(LED_BUILTIN, LOW);
   }
- // receive data;
-  receive(); 
- //check buffer:  
-  if (rxbuffer.size() > N ){
+  // receive data;
+  receive();
+  //check buffer:
+  if (rxbuffer.size() > N ) {
     Serial.println("Printing from buffer:");
     while (rxbuffer.isEmpty() != true) { // Print all elements in the buffer.
       //Serial.print("Items in buffer: "); Serial.println(rxbuffer.size());
