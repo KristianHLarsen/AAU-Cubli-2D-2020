@@ -99,6 +99,7 @@ ylabel('\theta_F [rad]')
 % legend('Complementary filter', 'Kalman filter', 'Raw potentiometer data') %% Add if plot(filtered_ang_pos) is enabled
 legend('Kalman filter', 'Raw potentiometer data') %% Remove this if plot(filtered_ang_pos) is enabled
 
+
  
 Kalman_poles = eig(A_d - H*K)
  

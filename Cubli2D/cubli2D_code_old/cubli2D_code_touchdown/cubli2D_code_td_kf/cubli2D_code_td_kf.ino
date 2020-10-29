@@ -7,6 +7,8 @@
 #include <Servo.h>
 #include <VidorFPGA.h>
 #include <Wire.h>
+#include <BasicLinearAlgebra.h>
+
 
 //pin definitions
 #define enable 1      //Enable motor: HIGH = on, LOW = off
@@ -79,6 +81,24 @@ int touchdown_pwm = 50; // PWM 50 corresponds to 0 velocity on the motor
 boolean touchdown_brake = false;
 int touchdown_measurement_timer = 0;
 
+// Discrete State space system
+ BLA::Matrix<3,3> A_kf;
+ BLA::Matrix<3,1> B_kf;
+ BLA::Matrix<3,1> x_prior_kf;                
+ BLA::Matrix<3,1> x_post_kf;
+ float u_kf;       
+
+// Kalman filter matrices                        
+ BLA::Matrix<3,3> K_kf;
+ BLA::Matrix<3,3> P_prior_kf;
+ BLA::Matrix<3,3> P_post_kf;
+ BLA::Matrix<3,3> H_kf;
+ BLA::Matrix<3,3> Q_kf;
+ BLA::Matrix<3,3> R_kf;
+ BLA::Matrix<3,3> I_kf; // identity matrix
+
+                      
+
 
 void setup() {
   Serial.begin(115200);
@@ -97,6 +117,7 @@ void setup() {
   pinMode(potIn, INPUT_PULLUP);
   
   filter_setup();
+  kalman_filter_setup() 
   
   brake.write(brk);  //brake motor
   delay(1000);

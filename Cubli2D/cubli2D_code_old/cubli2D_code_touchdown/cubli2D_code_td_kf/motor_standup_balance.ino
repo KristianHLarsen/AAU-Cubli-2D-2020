@@ -102,6 +102,7 @@ void updateMotor() {
   if (curr >= CURRENT_MAX)  curr = CURRENT_MAX;  // if above max current set equal to max
   if (curr <= -CURRENT_MAX)  curr = -CURRENT_MAX; // if below min current set equal to min
   motor_torque = kt*curr;
+  u_kf = motor_torque;
   duty = (int)interpolate(curr, -CURRENT_MAX, CURRENT_MAX, freq_max, freq_min); // map the current from max to min
   FPGA.analogWrite(PWM_PIN, map(duty, 0, 100, pow(2, bits), 0)); // set pwm of the motor
   if (!add_cycle) cycle_speed[cycle] = spw; // save the speed for the ANGLE_REF correction
