@@ -1,22 +1,19 @@
 clc
 close all
 clear all
-
 %% Load file
 % 1. Timestamp - 2. Potentiometer angle - 3. Gyro speed of frame - 4. Acceleration in X - 5. Acceleration in Y - 6. Speed of wheel
 data = dlmread('balance_data_3.csv', ';');
 % data = csvread('balance_data_3.csv');
 
 %% measurements
-% 1. Angle of frame - 3. Gyro speed of frame - 4. Speed of wheel
+% 1. Angle of frame - 2. Gyro speed of frame - 3. Speed of wheel
 z = transpose([(atan2(data(:,4), data(:,5)) - pi/4) , data(:,3), data(:,6)]);
-pot = data(:,2)*(-pi)/180;
-filtered_ang_pos = data(:,7);
+pot = data(:,2)*(pi)/180;
+filtered_ang_pos = -data(:,7);
 % plot(z(:,1))
 % hold on
 % plot(data(:,2)*pi/180)
-
-%%-(((atan2(-AcY, -AcX) + PI) * RAD_TO_DEG) - 45);
 %% Model parameter definitions
 
 g = 9.816; % Gravitational acceleration [m/s^2]
@@ -28,8 +25,7 @@ m_f = 0.766-m_w; % Mass of the frame [kg]
 l_f = 0.0958; % Distance between frame COM and the origin [m]
 J_f = 0.0067; % Inertia of the frame [kg*m^2]
 b_f = (0.0036+0.0033+0.0038)/3; % Damping coefficient for the frame [N*m*s/rad]
-
-%% State space model
+%% State space model (continuous)
 
 A = zeros(3,3);
 A(1,1) = 0;
@@ -47,40 +43,42 @@ B(1) = 0;
 B(2) = -1/(J_f+m_w*(l_w)^2);
 B(3) = (J_w+J_f+m_w*(l_w)^2)/(J_w*(J_f+m_w*(l_w)^2));
 
-u = data(:,7);
-
 C = eye(3);
 D = zeros(3,1);
 sys = ss(A,B,C,D);
+
+u = data(:,7); %% Input vector
+
+%% Discrete State space
 dt = 0.002; %% sampling time
 d_sys = c2d(sys,dt);
 
 A_d = d_sys.A;
 B_d = d_sys.B;
 
-%%%%%%%%%%%%%%%%% KALMAN FILTER %%%%%%%%%%%%%%%%%%%%%
 
-%%% initial guess of the state
+%% %%%%%%%%%%%%%%% KALMAN FILTER %%%%%%%%%%%%%%%%%%%%%
+% initial guess of the state
 x_prior(:,1) = [0 0 0];
 x_post(:,1) = [0 0 0];
 
 P_prior = eye(3);
 P_post = eye(3);
+
+% Mapping between states and measurements
 H = eye(3);
 
 %%% Covariance of the noise in the measurement
-R = [0.0001 0 0;
-        0 0.1 0;
-        0 0 1];
+R = [0.15 0 0;
+        0 10 0;
+        0 0 1000];
 
 %%% Covariance of the noise in the process
-Q = [1 0 0;
+Q = [0.00001 0 0;
         0 1 0;
         0 0 1];
-    
-Q = Q;
 
-
+% Main Kalman loop
 for i = 2:length(u)
     x_prior(:,i) = A_d*x_post(:,i-1) + B_d*u(i);
     P_prior = A_d*P_post*transpose(A_d) + Q;
@@ -90,11 +88,17 @@ for i = 2:length(u)
     P_post = P_prior - K*H*P_prior;
 end
 
+%% %%%%%%% Plotting results %%%%%%%%%%%%%
+% plot(filtered_ang_pos)
+% hold on
 plot(x_post(1,:))
-hold on
-plot(filtered_ang_pos)
 hold on
 plot(pot)
 xlabel('time [ms]') 
 ylabel('\theta_F [rad]') 
+% legend('Complementary filter', 'Kalman filter', 'Raw potentiometer data') %% Add if plot(filtered_ang_pos) is enabled
+legend('Kalman filter', 'Raw potentiometer data') %% Remove this if plot(filtered_ang_pos) is enabled
+
+ 
+Kalman_poles = eig(A_d - H*K)
  
