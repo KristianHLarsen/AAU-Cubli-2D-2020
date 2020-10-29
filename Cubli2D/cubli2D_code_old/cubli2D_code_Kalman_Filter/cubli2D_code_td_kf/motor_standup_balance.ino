@@ -93,8 +93,6 @@ void updateMotor() {
   sam_slut = micros(); // meassure time
   timer_var = micros();
   ang_err =  angle_pot();      // calculate angle error
-//  Serial.println("Balance:");
-//  Serial.print(ang_err);
   if (enable_kalman_filter && sensor == 2)
   {
     spf = x_post_kf(1);
@@ -102,7 +100,6 @@ void updateMotor() {
   }
   else
   {
-
     spf = speed_frame();         // calculate frame speed
     spw = (((float)(((float)analogRead(SPEED_PIN) - 512)) * (2048.0 / 1024.0)) * rpm2rad); // measure flywheel speed
   }
@@ -115,7 +112,7 @@ void updateMotor() {
   u_kf = motor_torque;
   kalman_filter_update();
   duty = (int)interpolate(curr, -CURRENT_MAX, CURRENT_MAX, freq_max, freq_min); // map the current from max to min
-  FPGA.analogWrite(PWM_PIN, map(duty, 0, 100, pow(2, bits), 0)); // set pwm of the motor
+  //FPGA.analogWrite(PWM_PIN, map(duty, 0, 100, pow(2, bits), 0)); // set pwm of the motor
   if (!add_cycle) cycle_speed[cycle] = spw; // save the speed for the ANGLE_REF correction
   if (!add_cycle) cycle++; // add one to the array
   sam_start = timer_var;

@@ -82,7 +82,7 @@ boolean touchdown_brake = false;
 int touchdown_measurement_timer = 0;
 
 //Kalman filter vars
- boolean enable_kalman_filter = true;
+ boolean enable_kalman_filter = true; // set to true if you want to use kalman filter for IMU control; set false for complementary filter 
 
  BLA::Matrix<3,3> A_kf;
  BLA::Matrix<3,1> B_kf;
@@ -153,8 +153,8 @@ void loop() {
   if (sensor) {
     digitalWrite(enable, HIGH); //enable driver for writing
     if (micros() - timer_var >= samp_period) updateMotor(); // if we have waited the sampling time.
-    balancePoint();  // check if ANGLE_REF needs correction
-    standup();   //Did we fall? then rise.
+    //balancePoint();  // check if ANGLE_REF needs correction
+    //standup();   //Did we fall? then rise.
 //    print_balance_data(); // Prints data while balancing
   }
   if (!sensor) { // sytem is off
