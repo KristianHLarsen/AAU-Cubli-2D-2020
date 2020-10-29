@@ -8,7 +8,7 @@ data = dlmread('balance_data_3.csv', ';');
 
 %% measurements
 % 1. Angle of frame - 2. Gyro speed of frame - 3. Speed of wheel
-z = transpose([-(atan2(data(:,4), data(:,5)) - pi/4) , data(:,3), 2*data(:,6)]);
+z = transpose([-(atan2(data(:,4), data(:,5)) - pi/4) , data(:,3), data(:,6)]);
 pot = -data(:,2)*(pi)/180;
 filtered_ang_pos = data(:,7);
 % plot(z(:,1))
@@ -71,12 +71,12 @@ H = eye(3);
 %%% Covariance of the noise in the measurement
 R = [0.01 0 0;
         0 1 0;
-        0 0 1000];
+        0 0 100];
 
 %%% Covariance of the noise in the process
 Q = [0.00001 0 0;
         0 1 0;
-        0 0 50];
+        0 0 1];
 
 % Main Kalman loop
 for i = 2:length(u)
@@ -101,9 +101,9 @@ ylabel('\theta_F [rad]')
 legend('Kalman filter', 'Raw potentiometer data') %% Remove this if plot(filtered_ang_pos) is enabled
 %%
 figure(2)
-plot(x_post(3,:), 'Linewidth', 1)
+plot(x_post(3,:), 'Linewidth', 2)
 hold on
-plot (z(3,:))
+plot (data(:,6))
  
 Kalman_poles = eig(A_d - H*K)
  

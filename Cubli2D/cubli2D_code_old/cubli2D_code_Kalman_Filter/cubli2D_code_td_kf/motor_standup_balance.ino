@@ -95,14 +95,25 @@ void updateMotor() {
   ang_err =  angle_pot();      // calculate angle error
 //  Serial.println("Balance:");
 //  Serial.print(ang_err);
-  spf = speed_frame();         // calculate frame speed
-  spw = (((float)(((float)analogRead(SPEED_PIN) - 512)) * (2048.0 / 1024.0)) * rpm2rad); // measure flywheel speed
+  if (enable_kalman_filter && sensor == 2)
+  {
+    spf = x_post_kf(1);
+    spw = x_post_kf(2);
+  }
+  else
+  {
+
+    spf = speed_frame();         // calculate frame speed
+    spw = (((float)(((float)analogRead(SPEED_PIN) - 512)) * (2048.0 / 1024.0)) * rpm2rad); // measure flywheel speed
+  }
+  
   if (sensor == 1)  curr = (((k1_pot * spw + k2_pot * ang_err + k3_pot * spf)) / kt); // potentiometer controller
   if (sensor == 2)  curr = (((k1 * spw + k2 * ang_err + k3 * spf)) / kt);  // IMU controller
   if (curr >= CURRENT_MAX)  curr = CURRENT_MAX;  // if above max current set equal to max
   if (curr <= -CURRENT_MAX)  curr = -CURRENT_MAX; // if below min current set equal to min
   motor_torque = kt*curr;
   u_kf = motor_torque;
+  kalman_filter_update();
   duty = (int)interpolate(curr, -CURRENT_MAX, CURRENT_MAX, freq_max, freq_min); // map the current from max to min
   FPGA.analogWrite(PWM_PIN, map(duty, 0, 100, pow(2, bits), 0)); // set pwm of the motor
   if (!add_cycle) cycle_speed[cycle] = spw; // save the speed for the ANGLE_REF correction

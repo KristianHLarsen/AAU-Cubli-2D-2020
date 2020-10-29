@@ -43,24 +43,27 @@ void kalman_filter_setup()
           0.0000, 1.0000, 0.0000,
           0.0000, 0.0000, 1000.0;
 
-  x_prior_kf.Fill(0);                
-  x_post_kf.Fill(0); 
+  z_kf << (-atan2(AcX, AcY) - PI/4),
+          (GyZ * 0.0174532925),
+          (((float)(((float)analogRead(SPEED_PIN) - 512)) * (2048.0 / 1024.0)) * rpm2rad);
+  x_prior_kf = z_kf;             
+  x_post_kf = z_kf; 
   K_kf.Fill(0);
   P_prior_kf = I_kf;
   P_post_kf = I_kf;
-  H_kf = I_kf;            
+  H_kf = I_kf;          
 
 }
 
 void kalman_filter_update()
 {
-    x_prior(:,i) = A_d*x_post(:,i-1) + B_d*u(i);
-    P_prior = A_d*P_post*transpose(A_d) + Q;
-    K = P_prior * transpose(H) * ...
-           inv((H * P_prior * transpose(H) + R));    
-    x_post(:,i) = x_prior(:,i) + K*(z(:,i) - H*x_prior(:,i));
-    P_post = P_prior - K*H*P_prior;
-
   x_prior_kf = A_kf * x_post_kf + B_kf*u_kf;
-    
+  P_prior_kf = A_kf * P_post_kf * (~A_kf) + Q_kf;
+  K_kf = P_prior_kf * (~H_kf) * ((H_kf * P_prior_kf * (~H_kf) + R_kf)).Inverse();
+
+  z_kf << (-atan2(AcX, AcY) - PI/4),
+          (GyZ * 0.0174532925),
+          (((float)(((float)analogRead(SPEED_PIN) - 512)) * (2048.0 / 1024.0)) * rpm2rad);  
+  x_post_kf = x_prior_kf + K_kf*z_kf - H_kf*x_prior_kf;
+  P_post_kf = P_prior_kf - K_kf*H_kf*P_prior_kf;   
 }

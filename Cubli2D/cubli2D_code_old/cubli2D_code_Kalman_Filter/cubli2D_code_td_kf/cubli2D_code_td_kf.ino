@@ -81,11 +81,14 @@ int touchdown_pwm = 50; // PWM 50 corresponds to 0 velocity on the motor
 boolean touchdown_brake = false;
 int touchdown_measurement_timer = 0;
 
-// Discrete State space system
+//Kalman filter vars
+ boolean enable_kalman_filter = true;
+
  BLA::Matrix<3,3> A_kf;
  BLA::Matrix<3,1> B_kf;
  BLA::Matrix<3,1> x_prior_kf;                
  BLA::Matrix<3,1> x_post_kf;
+ BLA::Matrix<3,1> z_kf;
  float u_kf;       
 
 // Kalman filter matrices                        
@@ -117,7 +120,7 @@ void setup() {
   pinMode(potIn, INPUT_PULLUP);
   
   filter_setup();
-  kalman_filter_setup() 
+  kalman_filter_setup();
   
   brake.write(brk);  //brake motor
   delay(1000);
