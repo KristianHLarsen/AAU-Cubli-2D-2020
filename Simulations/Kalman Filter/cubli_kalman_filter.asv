@@ -8,7 +8,7 @@ data = dlmread('balance_data_3.csv', ';');
 
 %% measurements
 % 1. Angle of frame - 2. Gyro speed of frame - 3. Speed of wheel
-z = transpose([-(atan2(data(:,4), data(:,5)) - pi/4) , data(:,3), data(:,6)]);
+z = transpose([-(atan2(data(:,4), data(:,5)) - pi/4) , data(:,3), 2*data(:,6)]);
 pot = -data(:,2)*(pi)/180;
 filtered_ang_pos = data(:,7);
 % plot(z(:,1))
@@ -71,12 +71,12 @@ H = eye(3);
 %%% Covariance of the noise in the measurement
 R = [0.01 0 0;
         0 1 0;
-        0 0 100];
+        0 0 1000];
 
 %%% Covariance of the noise in the process
 Q = [0.00001 0 0;
         0 1 0;
-        0 0 1];
+        0 0 50];
 
 % Main Kalman loop
 for i = 2:length(u)
@@ -88,8 +88,11 @@ for i = 2:length(u)
     P_post = P_prior - K*H*P_prior;
 end
 
+Kalman_poles = eig(A_d - H*K);
+
 %% %%%%%%% Plotting results %%%%%%%%%%%%%
 figure(1)
+subplot(3, 1, 1)
 % plot(filtered_ang_pos)
 % hold on
 plot(x_post(1,:), 'Linewidth', 1)
@@ -99,11 +102,27 @@ xlabel('time [ms]')
 ylabel('\theta_F [rad]') 
 % legend('Complementary filter', 'Kalman filter', 'Raw potentiometer data') %% Add if plot(filtered_ang_pos) is enabled
 legend('Kalman filter', 'Raw potentiometer data') %% Remove this if plot(filtered_ang_pos) is enabled
-%%
-figure(2)
-plot(x_post(3,:), 'Linewidth', 2)
+title('Angular position of frame', 'FontSize', 15);
+
+subplot(3, 1, 2)
+plot(x_post(2,:), 'Linewidth', 1)
 hold on
-plot (data(:,6))
+plot (z(2,:))
+xlabel('time [ms]') 
+ylabel('\omega_F [rad/s]') 
+legend('Kalman filter', 'Raw gyro data') %% Add if plot(filtered_ang_pos) is enabled
+title('Angular velocity of frame', 'FontSize', 15);
+
  
-Kalman_poles = eig(A_d - H*K)
+subplot(3, 1, 3)
+plot(x_post(3,:), 'Linewidth', 1)
+hold on
+plot (z(3,:))
+xlabel('time [ms]') 
+ylabel('\omega_w [rad]') 
+legend('Kalman filter', 'Raw escon data') %% Add if plot(filtered_ang_pos) is enabled
+title('Angular velocity of reaction wheel', 'FontSize', 10);
+
+ 
+
  

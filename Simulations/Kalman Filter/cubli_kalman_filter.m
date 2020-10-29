@@ -88,8 +88,11 @@ for i = 2:length(u)
     P_post = P_prior - K*H*P_prior;
 end
 
+Kalman_poles = eig(A_d - H*K);
+
 %% %%%%%%% Plotting results %%%%%%%%%%%%%
 figure(1)
+subplot(3, 1, 1)
 % plot(filtered_ang_pos)
 % hold on
 plot(x_post(1,:), 'Linewidth', 1)
@@ -99,11 +102,27 @@ xlabel('time [ms]')
 ylabel('\theta_F [rad]') 
 % legend('Complementary filter', 'Kalman filter', 'Raw potentiometer data') %% Add if plot(filtered_ang_pos) is enabled
 legend('Kalman filter', 'Raw potentiometer data') %% Remove this if plot(filtered_ang_pos) is enabled
-%%
-figure(2)
+title('Angular position of frame', 'FontSize', 10);
+
+subplot(3, 1, 2)
+plot(x_post(2,:), 'Linewidth', 1)
+hold on
+plot (z(2,:))
+xlabel('time [ms]') 
+ylabel('\omega_F [rad/s]') 
+legend('Kalman filter', 'Raw gyro data') %% Add if plot(filtered_ang_pos) is enabled
+title('Angular velocity of frame', 'FontSize', 10);
+
+ 
+subplot(3, 1, 3)
 plot(x_post(3,:), 'Linewidth', 1)
 hold on
 plot (z(3,:))
+xlabel('time [ms]') 
+ylabel('\omega_w [rad]') 
+legend('Kalman filter', 'Raw escon data') %% Add if plot(filtered_ang_pos) is enabled
+title('Angular velocity of reaction wheel', 'FontSize', 10);
+
  
-Kalman_poles = eig(A_d - H*K)
+
  
