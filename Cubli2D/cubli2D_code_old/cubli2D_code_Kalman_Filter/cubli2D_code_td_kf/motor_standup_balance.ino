@@ -199,5 +199,11 @@ void print_balance_data()
     Serial.print("; ");
     Serial.print(ang_err);
     Serial.print("; ");
+    Serial.print(x_post_kf(0));
+    Serial.print("; ");
+    Serial.print(x_post_kf(1));
+    Serial.print("; ");
+    Serial.print(x_post_kf(2));
+    Serial.print("; ");
     Serial.println(az);
 }
