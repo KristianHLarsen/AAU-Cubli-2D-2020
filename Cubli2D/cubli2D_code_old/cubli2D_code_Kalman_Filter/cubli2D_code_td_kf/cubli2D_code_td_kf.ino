@@ -82,14 +82,14 @@ boolean touchdown_brake = false;
 int touchdown_measurement_timer = 0;
 
 //Kalman filter vars
- boolean enable_kalman_filter = true; // set to true if you want to use kalman filter for IMU control; set false for complementary filter 
+ boolean enable_kalman_filter = false; // set to true if you want to use kalman filter for IMU control; set false for complementary filter 
 
  BLA::Matrix<3,3> A_kf;
  BLA::Matrix<3,1> B_kf;
  BLA::Matrix<3,1> x_prior_kf;                
  BLA::Matrix<3,1> x_post_kf;
  BLA::Matrix<3,1> z_kf;
- float u_kf;       
+ float u_kf, timer_kf;       
 
 // Kalman filter matrices                        
  BLA::Matrix<3,3> K_kf;
@@ -163,7 +163,7 @@ void loop() {
     }
     balancePoint();  // check if ANGLE_REF needs correction
     standup();   //Did we fall? then rise.
-//    print_balance_data(); // Prints data while balancing
+    print_balance_data(); // Prints data while balancing
   }
   if (!sensor) { // sytem is off
     if(enable_touchdown) touchDown(); //if enable_touchdown is set to true, call the touchDown() function

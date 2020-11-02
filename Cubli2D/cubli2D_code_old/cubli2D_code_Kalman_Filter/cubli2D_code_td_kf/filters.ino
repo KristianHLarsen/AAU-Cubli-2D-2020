@@ -56,6 +56,7 @@ void kalman_filter_setup()
 
 void kalman_filter_update()
 {
+  timer_kf = millis();
   GetIMUData();
   z_kf << az*PI/180,
           (GyZ * 0.0174532925),
@@ -68,5 +69,6 @@ void kalman_filter_update()
   K_kf = P_prior_kf * (~H_kf) * ((H_kf * P_prior_kf * (~H_kf) + R_kf)).Inverse();
   
   x_post_kf = x_prior_kf + K_kf * z_kf - H_kf * x_prior_kf;
-  P_post_kf = P_prior_kf - K_kf * H_kf * P_prior_kf;   
+  P_post_kf = P_prior_kf - K_kf * H_kf * P_prior_kf;
+  timer_kf = millis() - timer_kf;  
 }

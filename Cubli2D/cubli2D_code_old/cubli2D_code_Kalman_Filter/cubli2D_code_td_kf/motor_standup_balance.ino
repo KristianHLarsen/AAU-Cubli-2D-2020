@@ -185,8 +185,8 @@ void print_touchdown_data()
 void print_balance_data()
 {
     Serial.print(millis());
-//    Serial.print("; ");
-//    Serial.print(((float)(analogRead(potPin) - 4.0) * (90.0 / 1023.0)) - 45.0); //angle measurement from potentiometer
+    Serial.print("; ");
+    Serial.print(((float)(analogRead(potPin) - 4.0) * (90.0 / 1023.0)) - 45.0); //angle measurement from potentiometer
     Serial.print("; ");
     Serial.print(speed_frame_imu()); //speed of the frame from IMU
     Serial.print("; ");
@@ -204,5 +204,7 @@ void print_balance_data()
     Serial.print("; ");
     Serial.print(x_post_kf(1)); // Kalman filter velocity of frame 
     Serial.print("; ");
-    Serial.println(x_post_kf(2)); // Kalman filter velocity of wheel
+    Serial.print(x_post_kf(2)); // Kalman filter velocity of wheel
+    Serial.print("; ");
+    Serial.println(timer_kf); // timer
 }
