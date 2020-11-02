@@ -8,8 +8,9 @@ data = dlmread('balance_data_3.csv', ';');
 
 %% measurements
 % 1. Angle of frame - 2. Gyro speed of frame - 3. Speed of wheel
-z = transpose([-(atan2(data(:,4), data(:,5)) - pi/4) , data(:,3), 2*data(:,6)]);
-pot = -data(:,2)*(pi)/180;
+% z = transpose([-(atan2(data(:,4), data(:,5)) - pi/4) , data(:,3), 2*data(:,6)]);
+z = transpose([-(atan2(-data(:,5), -data(:,4)) + pi - pi/4) , data(:,3), 2*data(:,6)]);
+pot = data(:,2)*(pi)/180;
 filtered_ang_pos = data(:,7);
 % plot(z(:,1))
 % hold on
