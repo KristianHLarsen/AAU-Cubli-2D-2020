@@ -56,7 +56,8 @@ void kalman_filter_setup()
 
 void kalman_filter_update()
 {
-  z_kf << (-atan2(AcX, AcY) - PI/4),
+  GetIMUData();
+  z_kf << az*PI/180,
           (GyZ * 0.0174532925),
           (((float)(((float)analogRead(SPEED_PIN) - 512)) * (2048.0 / 1024.0)) * rpm2rad);  
           

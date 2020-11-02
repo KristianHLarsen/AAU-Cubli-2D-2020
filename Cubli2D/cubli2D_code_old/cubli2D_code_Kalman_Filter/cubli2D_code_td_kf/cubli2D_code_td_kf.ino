@@ -131,7 +131,8 @@ void setup() {
   sam_slut = micros();
 
   // delete that!!!!
-  timer_var = micros();
+//  timer_var = micros();
+//  digitalWrite(enable, LOW); // disable driver
 }
 
 
@@ -154,16 +155,15 @@ void loop() {
   }
   else sensor = 0; // if system is off
   if (sensor) {
-//    digitalWrite(enable, HIGH); //enable driver for writing
-    digitalWrite(enable, LOW); // disable driver
+    digitalWrite(enable, HIGH); //enable driver for writing
     if (micros() - timer_var >= samp_period)
     {
-      Serial.println("calling updateMotor()");
+      // Serial.println("calling updateMotor()");
       updateMotor(); // if we have waited the sampling time.
     }
-    //balancePoint();  // check if ANGLE_REF needs correction
-    //standup();   //Did we fall? then rise.
-    print_balance_data(); // Prints data while balancing
+    balancePoint();  // check if ANGLE_REF needs correction
+    standup();   //Did we fall? then rise.
+//    print_balance_data(); // Prints data while balancing
   }
   if (!sensor) { // sytem is off
     if(enable_touchdown) touchDown(); //if enable_touchdown is set to true, call the touchDown() function

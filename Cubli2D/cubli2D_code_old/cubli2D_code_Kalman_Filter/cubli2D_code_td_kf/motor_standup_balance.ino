@@ -53,6 +53,7 @@ void standup() {
       delay(10);
     }
     filter_setup();
+    kalman_filter_setup(); // reset Kalman filter if cubli has fallen
     add_cycle = false;     //ENABLE ANGLE_REF corrections
     sam_start = micros();  //Reset timing parameter since last reading
     timer_var = micros();  // --//--
@@ -112,7 +113,7 @@ void updateMotor() {
   u_kf = motor_torque;
   kalman_filter_update();
   duty = (int)interpolate(curr, -CURRENT_MAX, CURRENT_MAX, freq_max, freq_min); // map the current from max to min
-  //FPGA.analogWrite(PWM_PIN, map(duty, 0, 100, pow(2, bits), 0)); // set pwm of the motor
+  FPGA.analogWrite(PWM_PIN, map(duty, 0, 100, pow(2, bits), 0)); // set pwm of the motor
   if (!add_cycle) cycle_speed[cycle] = spw; // save the speed for the ANGLE_REF correction
   if (!add_cycle) cycle++; // add one to the array
   sam_start = timer_var;
@@ -184,8 +185,8 @@ void print_touchdown_data()
 void print_balance_data()
 {
     Serial.print(millis());
-    Serial.print("; ");
-    Serial.print(((float)(analogRead(potPin) - 4.0) * (90.0 / 1023.0)) - 45.0); //angle measurement from potentiometer
+//    Serial.print("; ");
+//    Serial.print(((float)(analogRead(potPin) - 4.0) * (90.0 / 1023.0)) - 45.0); //angle measurement from potentiometer
     Serial.print("; ");
     Serial.print(speed_frame_imu()); //speed of the frame from IMU
     Serial.print("; ");
@@ -199,11 +200,9 @@ void print_balance_data()
     Serial.print("; ");
     Serial.print(ang_err);
     Serial.print("; ");
-    Serial.print(x_post_kf(0));
+    Serial.print(x_post_kf(0)); // Kalman filter position of frame 
     Serial.print("; ");
-    Serial.print(x_post_kf(1));
+    Serial.print(x_post_kf(1)); // Kalman filter velocity of frame 
     Serial.print("; ");
-    Serial.print(x_post_kf(2));
-    Serial.print("; ");
-    Serial.println(az);
+    Serial.println(x_post_kf(2)); // Kalman filter velocity of wheel
 }
