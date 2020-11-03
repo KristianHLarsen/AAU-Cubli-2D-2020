@@ -16,8 +16,9 @@ struct controlData_full {
 
 uint8_t cmd;
 char rxcmd;
+
 void printstruct(controlData_full data) {
-  Serial.println("Data:  ");
+  //Serial.println("Data:  ");
   Serial.print("CMD:  "); Serial.print(data.cmd);
   Serial.print(", val1:  "); Serial.print(data.val1);
   Serial.print(", val2:  "); Serial.print(data.val2);
@@ -28,6 +29,7 @@ union ZIGBEE_Packet_t {
   controlData_t packet;
   uint8_t ZBPacket[sizeof(controlData_t)];
 };
+
 ZIGBEE_Packet_t txdata;
 ZIGBEE_Packet_t rxdata;
 
@@ -91,22 +93,22 @@ unsigned long tstart = 0; //test vars time keeping
 unsigned long tstop = 0; //test vars time keeping
 
 
-int N = 4; // used for checking the number of elements in the buffer.
+int N = 1; // used for checking the number of elements in the buffer.
 void setup() {
 
   Serial.begin(115200);
   Serial1.begin(115200);
-  int k = sizeof(txdata.ZBPacket) + 1;
+  /*int k = sizeof(txdata.ZBPacket) + 1;
   delay(3000);
   Serial.print("Size of packet"); Serial.println(k);
-  //pinMode(1, INPUT_PULLUP);
- // pinMode(LED_BUILTIN, OUTPUT);
- // pinMode(3, OUTPUT); // transmission begin pin goes high when a transmission starts.
- // pinMode(4, OUTPUT); // when a packet is received pin goes high.
-  //digitalWrite(LED_BUILTIN, LOW);
-  //t0 = micros();
+  pinMode(1, INPUT_PULLUP);
+  pinMode(LED_BUILTIN, OUTPUT);
+  pinMode(3, OUTPUT); // transmission begin pin goes high when a transmission starts.
+  pinMode(4, OUTPUT); // when a packet is received pin goes high.
+  digitalWrite(LED_BUILTIN, LOW);
+  t0 = micros();
   digitalWrite(3, LOW);
-  digitalWrite(4, LOW);
+  digitalWrite(4, LOW);*/
 }
 
 
@@ -121,11 +123,11 @@ void loop() {
   txdata.packet.val3 = 14.312;
   cmd = '<';
   //   txdata.packet.cmd = 'C';
-transmit('<');
-delay(1000);  //printstruct(txdata.packet);
-  
-  
-  
+
+  //printstruct(txdata.packet);
+
+  //transmit(cmd);
+  //delay(1000);
   /*time_now = micros();
   // transmission:
   transmit('C');
@@ -134,29 +136,36 @@ delay(1000);  //printstruct(txdata.packet);
   Serial.println(timer_var);
   delay(1000);*/
   
-  /*if (digitalRead(1) == LOW) {
+  if (digitalRead(1) == LOW) {
     digitalWrite(LED_BUILTIN, HIGH);
     Serial.println("transmit 1 packet:");
     delay(1000);
     for (int i = 0; i < N; i++) {
       transmit('<');
     }
+    tstart = micros();
     //while ((t0 + ts ) > micros()) {}
-    // t0 = micros();
-    delay(1000);
+   // t0 = micros();
+    //delay(1000);
     digitalWrite(LED_BUILTIN, LOW);
-  }*/
+  }
   // receive data;
   receive();
   //check buffer:
-  if (rxbuffer.size() > N ) {
-    Serial.println("Printing from buffer:");
+ 
+    //Serial.println("Printing from buffer:");
     while (rxbuffer.isEmpty() != true) { // Print all elements in the buffer.
       //Serial.print("Items in buffer: "); Serial.println(rxbuffer.size());
+      tstop =micros()-t0;
       get_rx_data();
+      Serial.print("Delay 2 way: "); Serial.print(tstop); Serial.println("[us]");
       printstruct(tempdata);
-      delay(1000);
-      Serial.print("Items in buffer: "); Serial.println(rxbuffer.size());
+      //txdata.packet.val1 = tempdata.val1;
+      //txdata.packet.val2 = tempdata.val2;
+      //txdata.packet.val3 = tempdata.val3;
+      //transmit('<');
+      //delay(1000);
+      //Serial.print("Items in buffer: "); Serial.println(rxbuffer.size());
     }
-  }
+  
 }
