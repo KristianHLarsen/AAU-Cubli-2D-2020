@@ -10,9 +10,9 @@
 
 // Parameters used for time estimation:
 unsigned long tstop = 0, tdelay = 0, timer_var = 0;
-unsigned long tstart[10000000];
+unsigned long tstart[1000];
 const unsigned long ts = 1000000; // Sample time for the system: 
-int PacketNumber = 0;
+int PacketNumber = 4;
 
 //Communication:
 //struct for transmitting and receiving data:
@@ -45,7 +45,7 @@ struct delay_est_full {
   float est2;
 };
 
-
+int packetdelay=0;
 uint8_t cmd;
 char rxcmd;
 
@@ -72,7 +72,7 @@ ZIGBEE_Packet_t rxdata;
 controlData_full tempdata;
 controlData_full rxdatafull;
 delay_est_full DelayDataFull;
-
+delay_est_full Dtempdata;
 CircularBuffer<controlData_full, BUFFER_SIZE> rxbuffer;
 CircularBuffer<delay_est_full, BUFFER_SIZE> rxdelaybuffer;
 
@@ -111,7 +111,7 @@ void receive() {
     if (cmdtemp == 'D') {
       // rxcmd= Serial.read();
       for (int k = 0; k < PACKET_SIZE; k++) {
-        rxdata.ZBPacket[k] = Serial1.read();
+        rxdelay.ZBPacket[k] = Serial1.read();
       }
       DelayDataFull.cmd = cmdtemp;
       DelayDataFull.PacketNumber = rxdelay.packet.PacketNumber;
@@ -128,7 +128,7 @@ void get_rx_data() {
   tempdata = rxbuffer.shift(); // get packet from buffer.
 }
 void get_delay_data() {
-  DelayDataFull = rxdelaybuffer.shift();
+  Dtempdata = rxdelaybuffer.shift();
 }
 
 
@@ -157,17 +157,17 @@ void countdown(){
 
 
 
-int i = 0;
+int i = 4;
 
 
 void setup() {
   Serial.begin(115200);
   Serial1.begin(115200);
-  pinMode(delay_est1_pin, OUTPUT);
-  pinMode(delay_est2_pin, OUTPUT);
-  pinMode(transmit_pin, INPUT_PULLUP);
+ // pinMode(delay_est1_pin, OUTPUT);
+ // pinMode(delay_est2_pin, OUTPUT);
+ // pinMode(transmit_pin, INPUT_PULLUP);
   PacketNumber = 0;
-  rxdelaybuffer.clear();
+  ///rxdelaybuffer.clear();
   delay(5000);
   Serial.print("Packet Size:  ");Serial.println((sizeof(delay_est)+1));
   countdown();
@@ -176,19 +176,19 @@ void setup() {
 
 void loop() {
 
-/*
+
   if (micros() - timer_var >= ts) {
     timer_var = micros();
     tstart[i] = micros();
     i++;
-    PacketNumber = PacketNumber++;
+    PacketNumber = PacketNumber+1;
     txdelay.packet.PacketNumber = PacketNumber; 
     DelayTransmit('D');
     Serial.print("Packet number: "); Serial.println(PacketNumber);
   }
-*/
+
   receive();
- 
+ /*
   // transmit packet back dev1
   if (rxdelaybuffer.size() > 3) {
     if (micros() - timer_var >= ts) {
@@ -200,17 +200,22 @@ void loop() {
     }
     }
   }
+*/
 
-/*  
   // Print test result dev2
-  if (rxdelaybuffer.size() > 3) {
+  if (rxdelaybuffer.size() > 8) {
     if (rxdelaybuffer.isEmpty() != true) { // Print 1 element from buffer.
       get_delay_data();
-      tstop = (micros() - tstart[DelayDataFull.PacketNumber]) / 2;
-      Serial.print("Delay 2 way: "); Serial.print(tstop); Serial.print("[us]"); Serial.print("PacketNumber: "); Serial.println(DelayDataFull.PacketNumber);
+     packetdelay = Dtempdata.PacketNumber;
+     packetdelay= packetdelay-4;
+      tstop = (micros() - tstart[packetdelay]) / 2;
+      Serial.print("Delay 2 way: "); Serial.print(tstop); Serial.print("[us]"); Serial.print("PacketNumber: "); Serial.println(Dtempdata.PacketNumber);
     }
   }
 
-*/
+if(i>95){ // Reset counter to avoid overflow. 
+i = 8;
+}
+
 
 }
