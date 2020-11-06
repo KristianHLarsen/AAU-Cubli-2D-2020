@@ -55,7 +55,7 @@ sys = ss(A,B,C,D);
 u = data(:,7); %% Input vector
 
 %% Discrete State space
-dt = 0.002; %% sampling time
+ dt = 0.002; %% sampling time
 d_sys = c2d(sys,dt);
 
 A_d = d_sys.A;
@@ -64,40 +64,37 @@ B_d = d_sys.B;
 
 %% %%%%%%%%%%%%%%% KALMAN FILTER %%%%%%%%%%%%%%%%%%%%%
 % initial guess of the state
-x_prior(:,1) = [0 0 0];
-x_post(:,1) = [0 0 0];
+x_prior(:,1) = [0];
+x_post(:,1) = [0];
 
-P_prior = eye(3);
-P_post = eye(3);
+P_prior = [1];
+P_post = [1];
 
 % Mapping between states and measurements
-H = eye(3);
+H = [1; 0; 0];
 
 %%% Covariance of the noise in the measurement
-R = [0.01 0 0;
+R = [0.001 0 0;
         0 1 0;
-        0 0 1000];
+        0 0 10];
 
 %%% Covariance of the noise in the process
-Q = [0.00001 0 0;
-        0 1 0;
-        0 0 50];
+Q = [0.00001];
 
 % Main Kalman loop
 for i = 2:length(u)
-    x_prior(:,i) = A_d*x_post(:,i-1) + B_d*u(i);
-    P_prior = A_d*P_post*transpose(A_d) + Q;
+    x_prior(:,i) = x_post(:,i-1) + dt*z(2,i-1);
+    P_prior = A_d(1,1)*P_post*transpose(A_d(1,1)) + Q;
     K = P_prior * transpose(H) * ...
            inv((H * P_prior * transpose(H) + R));    
     x_post(:,i) = x_prior(:,i) + K*(z(:,i) - H*x_prior(:,i));
     P_post = P_prior - K*H*P_prior;
 end
 
-Kalman_poles = eig(A_d - H*K);
-
+Kalman_poles = eig(A_d(1,1) - H*K);
 %% %%%%%%% Plotting results %%%%%%%%%%%%%
 figure(1)
-subplot(3, 1, 1)
+subplot(1, 1, 1)
 % plot(filtered_ang_pos)
 % hold on
 plot(x_post(1,:), 'Linewidth', 1)
@@ -106,36 +103,69 @@ plot(pot, 'Linewidth', 1)
 xlabel('time [ms]') 
 ylabel('\theta_F [rad]') 
 % legend('Complementary filter', 'Kalman filter', 'Raw potentiometer data') %% Add if plot(filtered_ang_pos) is enabled
-legend('Kalman filter', 'Raw potentiometer data') %% Remove this if plot(filtered_ang_pos) is enabled
+
 title('Angular position of frame', 'FontSize', 10);
-
-hold on 
-plot(data(:,9))
-
-
-subplot(3, 1, 2)
-plot(x_post(2,:), 'Linewidth', 1)
 hold on
-plot (z(2,:))
-xlabel('time [ms]') 
-ylabel('\omega_F [rad/s]') 
-legend('Kalman filter', 'Raw gyro data') %% Add if plot(filtered_ang_pos) is enabled
-title('Angular velocity of frame', 'FontSize', 10);
+% 
+% hold on 
+% plot(data(:,9))
+% 
+% 
+% subplot(3, 1, 2)
+% plot(x_post(2,:), 'Linewidth', 1)
+% hold on
+% plot (z(2,:))
+% xlabel('time [ms]') 
+% ylabel('\omega_F [rad/s]') 
+% legend('Kalman filter', 'Raw gyro data') %% Add if plot(filtered_ang_pos) is enabled
+% title('Angular velocity of frame', 'FontSize', 10);
+% 
+% hold on 
+% plot(data(:,10))
+%  
+% subplot(3, 1, 3)
+% plot(x_post(3,:), 'Linewidth', 1)
+% hold on
+% plot (z(3,:))
+% xlabel('time [ms]') 
+% ylabel('\omega_w [rad]') 
+% legend('Kalman filter', 'Raw escon data') %% Add if plot(filtered_ang_pos) is enabled
+% title('Angular velocity of reaction wheel', 'FontSize', 10);
+% hold on 
+% plot(data(:,11))\
 
-hold on 
-plot(data(:,10))
- 
-subplot(3, 1, 3)
-plot(x_post(3,:), 'Linewidth', 1)
-hold on
-plot (z(3,:))
-xlabel('time [ms]') 
-ylabel('\omega_w [rad]') 
-legend('Kalman filter', 'Raw escon data') %% Add if plot(filtered_ang_pos) is enabled
-title('Angular velocity of reaction wheel', 'FontSize', 10);
-hold on 
-plot(data(:,11))
+%% Original Kalman
 
- 
+% initial guess of the state
+x_prior1(:,1) = [0 0 0];
+x_post1(:,1) = [0 0 0];
+
+P_prior = eye(3);
+P_post = eye(3);
+
+% Mapping between states and measurements
+H = eye(3);
+
+%%% Covariance of the noise in the measurement
+
+%%% Covariance of the noise in the process
+Q = [0.00001 0 0;
+        0 1 0;
+        0 0 50];
+
+% Main Kalman loop
+for i = 2:length(u)
+    x_prior1(:,i) = A_d*x_post1(:,i-1) + B_d*u(i);
+    P_prior = A_d*P_post*transpose(A_d) + Q;
+    K = P_prior * transpose(H) * ...
+           inv((H * P_prior * transpose(H) + R));    
+    x_post1(:,i) = x_prior1(:,i) + K*(z(:,i) - H*x_prior1(:,i));
+    P_post = P_prior - K*H*P_prior;
+end
+
+plot(x_post1(1,:), 'Linewidth', 1)
+legend('Reduced Kalman filter', 'Raw potentiometer data', 'Original Kalman Filter') %% Remove this if plot(filtered_ang_pos) is enabled
+mean(x_post(1,:))
+mean(x_post1(1,:))
 
  
