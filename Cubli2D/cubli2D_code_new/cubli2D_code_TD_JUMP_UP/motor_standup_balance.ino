@@ -55,7 +55,7 @@ void stand_up()
       else //determine the way we fell and spin up accordingly --- positive speed direction => needs negative current
       {
         spw = (((float)(((float)analogRead(SPEED_PIN) - 512)) * (12000.0 / 1024.0)) * rpm2rad); // measure flywheel speed
-        curr = -k4*(1.1*spw_ref-spw); // Flywheel motor speed controller to achieve reference speed. Converted into current that needs to be applied to motor. 1.1x multiplier as this side needs higher speed.
+        curr = -k4*(1.22*spw_ref-spw); // Flywheel motor speed controller to achieve reference speed. Converted into current that needs to be applied to motor. 1.1x multiplier as this side needs higher speed.
         if (curr >= CURRENT_MAX)  curr = CURRENT_MAX;  // if above max current set equal to max
         if (curr <= -CURRENT_MAX)  curr = -CURRENT_MAX; // if below min current set equal to min
         duty = (int)interpolate(curr, -CURRENT_MAX, CURRENT_MAX, freq_max, freq_min); // map the current from max to min
@@ -132,7 +132,7 @@ void touchdown()
 {
   sensor = 1; //use potentiometer for angle measurements 
   ang_err = angle_pot(); // measure the angle of the cubli while falling down.
-  if (ang_err > 0.035 && ang_err < 0.33) // Within this range, start speeding up the wheel to NEG reference speed. 
+  if (ang_err > 0.035 && ang_err < 0.31) // Within this range, start speeding up the wheel to NEG reference speed. 
   {
     spw = (((float)(((float)analogRead(SPEED_PIN) - 512)) * (12000.0 / 1024.0)) * rpm2rad); // measure flywheel speed in radians. 
     curr = -k5*(-td_spw_ref-spw); // Flywheel motor speed controller to achieve reference speed. Converted into current that needs to be applied to motor. 
@@ -141,7 +141,7 @@ void touchdown()
     duty = (int)interpolate(curr, -CURRENT_MAX, CURRENT_MAX, freq_max, freq_min); // map the current from max to min
     FPGA.analogWrite(PWM_PIN, map(duty, 0, 100, pow(2, bits), 0)); // set pwm of the motor
   }
-  else if (ang_err < -0.035 && ang_err > -0.33)  // Within this range, start speeding up the wheel to POS reference speed. 
+  else if (ang_err < -0.035 && ang_err > -0.29)  // Within this range, start speeding up the wheel to POS reference speed. 
   {
     spw = (((float)(((float)analogRead(SPEED_PIN) - 512)) * (12000.0 / 1024.0)) * rpm2rad); // measure flywheel speed in radians. 
     curr = -k5*(1.1*td_spw_ref-spw); // Flywheel motor speed controller to achieve reference speed. Converted into current to be applied to motor. 1.1x multiplier as this side needs higher speed. 
@@ -150,7 +150,14 @@ void touchdown()
     duty = (int)interpolate(curr, -CURRENT_MAX, CURRENT_MAX, freq_max, freq_min); // map the current from max to min
     FPGA.analogWrite(PWM_PIN, map(duty, 0, 100, pow(2, bits), 0)); // set pwm of the motor
   }
-  else if (abs(ang_err) > 0.33 && abs(ang_err) < 0.45) // Within this range, brake the wheel to achieve momentum for touchdown
+  else if (ang_err > 0.31 && ang_err < 0.45) // Within this range, brake the wheel to achieve momentum for touchdown
+  {
+    brake.write(brk - 5); //brake motor hard to achieve momentum for touchdown
+    delay (200);
+    brake.write(go); // release brake
+    touchdown_start = false; // disable touchdown_start function
+  }
+  else if (ang_err < -0.29 && ang_err > -0.45) // Within this range, brake the wheel to achieve momentum for touchdown
   {
     brake.write(brk - 5); //brake motor hard to achieve momentum for touchdown
     delay (200);

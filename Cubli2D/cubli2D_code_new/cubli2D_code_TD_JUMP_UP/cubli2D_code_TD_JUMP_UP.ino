@@ -72,7 +72,7 @@ int timer_var = 0, time_now = 0, time_last = 0;
 
 // standup vars
 int standup_timer = 0; 
-float spw_ref = 1400*rpm2rad; // standup speed reference for speed controller. RPM converted to rad/s
+float spw_ref = 1320*rpm2rad; // standup speed reference for speed controller. RPM converted to rad/s
 float k4 = 0.03; //gain for standup speed controller
 
 
