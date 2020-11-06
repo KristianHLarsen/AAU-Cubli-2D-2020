@@ -62,11 +62,8 @@ ZIGBEE_Packet_t rxdata;
 controlData_full tempdata;
 controlData_full rxdatafull;
 
-
-delay_est_full DelayDataFull;
-delay_est_full Dtempdata;
 CircularBuffer<controlData_full, BUFFER_SIZE> rxbuffer;
-CircularBuffer<delay_est_full, BUFFER_SIZE> rxdelaybuffer;
+
 
 // Transmit function, takes command argument which is used for
 void transmit(uint8_t cmd) {
@@ -76,12 +73,7 @@ void transmit(uint8_t cmd) {
   }
 }
 
-void DelayTransmit(uint8_t cmd) {
-  Serial1.write(cmd);
-  for (int k = 0; k < PACKET_SIZE; k++) {
-    Serial1.write(txdelay.ZBPacket[k]);
-  }
-}
+// Receive functionalities:
 // Types of states:
 // 'L' "im down to the left"
 // 'R' "im down to the right"
@@ -94,8 +86,7 @@ void DelayTransmit(uint8_t cmd) {
 void receive() {
   if (Serial1.available() > PACKET_SIZE ) {
     uint8_t cmdtemp = Serial1.read();
-    if (cmdtemp == 'L'||cmdtemp =='R' ||cmdtemp == 'S'||cmdtemp =='V' ||cmdtemp == 'B'||cmdtemp =='C' ||cmdtemp == 'D') {
-      // rxcmd= Serial.read();
+    if (cmdtemp == 'L' || cmdtemp == 'R' || cmdtemp == 'S' || cmdtemp == 'V' || cmdtemp == 'B' || cmdtemp == 'C' || cmdtemp == 'D') {
       for (int k = 0; k < PACKET_SIZE; k++) {
         rxdata.ZBPacket[k] = Serial1.read();
       }
@@ -106,32 +97,15 @@ void receive() {
       rxbuffer.push(rxdatafull);
       cmdtemp = 0;
     }
-    //Delay packets:
-    if (cmdtemp == 'D') {
-      // rxcmd= Serial.read();
-      for (int k = 0; k < PACKET_SIZE; k++) {
-        rxdelay.ZBPacket[k] = Serial1.read();
-      }
-      DelayDataFull.cmd = cmdtemp;
-      DelayDataFull.PacketNumber = rxdelay.packet.PacketNumber;
-      DelayDataFull.est1 = rxdelay.packet.est1;
-      DelayDataFull.est2 = rxdelay.packet.est2;
-      rxdelaybuffer.push(DelayDataFull);
-      cmdtemp = 0;
-    }
-
   }
 }
 // get retrieved from buffer value using following command:
 void get_rx_data() {
   tempdata = rxbuffer.shift(); // get packet from buffer.
 }
-void get_delay_data() {
-  Dtempdata = rxdelaybuffer.shift();
-}
 
 
-void countdown(){
+void countdown() {
   Serial.println("Starting delay test in: 5s ");
   delay(1000);
   Serial.println("Starting delay test in: 4s ");
@@ -145,7 +119,7 @@ void countdown(){
 }
 
 //void packet_timeout(){
-  
+
 //}
 
 int i = 4;
@@ -159,81 +133,65 @@ int i = 4;
 // Parameters used for time estimation:
 unsigned long tstop = 0, tdelay = 0, timer_var = 0;
 unsigned long tstart[3000];
-const unsigned long packet_timeout=100000; 
-const unsigned long ts = 8000; // Sample time for the system: 
+const unsigned long packet_timeout = 100000;
+const unsigned long ts = 8000; // Sample time for the system:
 int PacketNumber = 4;
-int packetdelay=0;
+int packetdelay = 0;
 
 bool flag = 0;
 void setup() {
   Serial.begin(500000);
   Serial1.begin(115200);
- // pinMode(delay_est1_pin, OUTPUT);
- // pinMode(delay_est2_pin, OUTPUT);
- // pinMode(transmit_pin, INPUT_PULLUP);
+  // pinMode(delay_est1_pin, OUTPUT);
+  // pinMode(delay_est2_pin, OUTPUT);
+  // pinMode(transmit_pin, INPUT_PULLUP);
   PacketNumber = 0;
-  ///rxdelaybuffer.clear();
+  ///rxbuffer.clear();
   delay(5000);
-  Serial.print("Packet Size:  ");Serial.println((sizeof(delay_est)+1));
+  Serial.print("Packet Size:  "); Serial.println((sizeof(delay_est) + 1));
   countdown();
-  timer_var = 0; 
+  timer_var = 0;
   flag = 0;
 }
 
 
+
+
 void loop() {
-receive();
-
+  receive();
+// Types of states:
+// 'L' "im down to the left"
+// 'R' "im down to the right"
+// 'S'  "get ready to standup"
+// 'V'  "Stand up velocity reached"
+// 'B'  "stand up with the brake"
+// 'C'  "Im standing up"
+// 'D'  "Shutdown"
+ // Inside control loop: 
   if (micros() - timer_var >= ts) {
-    timer_var = micros();
-    tstart[PacketNumber] = micros();
-    i++;
-    txdelay.packet.PacketNumber = PacketNumber; 
-  //  Serial.print("Packet number: "); Serial.print(PacketNumber); Serial.print(" |  ");
-    PacketNumber = PacketNumber+1;
-    DelayTransmit('D');
-  
- /*
-  // transmit packet back dev1
-  if (rxdelaybuffer.size() >= 8) {
-    if (micros() - timer_var >= ts) {
-    timer_var = micros();
-    if (rxdelaybuffer.isEmpty() != true) { // check if buffer is empty: if not then transmit packet. 
-      get_delay_data();
-      txdelay.packet.PacketNumber = DelayDataFull.PacketNumber;
-      DelayTransmit('D');
-    }
-    }
-  }
-*/
- //if (rxdelaybuffer.size() >= 20){
- // flag =1;    
-    if (rxdelaybuffer.isEmpty() != true) { // Print 1 element from buffer.
-      get_delay_data();
-     packetdelay = Dtempdata.PacketNumber;
-     //packetdelay= packetdelay;
-      tstop = (micros() - tstart[packetdelay]);
-      //Serial.print("Delay 2 way: "); 
-      Serial.println(tstop); 
-      //Serial.print("[us]"); Serial.print("PacketNumber: "); Serial.println(packetdelay);
-    }
-  }
- //}
- 
-   // Print test result dev2
-  if (rxdelaybuffer.size() >= 4 ) {
-     get_delay_data();
-     packetdelay = Dtempdata.PacketNumber;
-     //packetdelay= packetdelay;
-      tstop = (micros() - tstart[packetdelay]);
-      //Serial.print("Delay 2 way: "); 
-      Serial.println(tstop); 
-      //Serial.print("[us]"); Serial.print("PacketNumber: "); Serial.println(packetdelay);
-    }
-if(i>2998){ // Reset counter to avoid overflow. 
-i = 3 ;
-PacketNumber = 0;
-}
+  // update values
 
+
+
+  if (rxbuffer.isEmpty() != true) { // Print 1 element from buffer.
+      get_rx_data();
+      
+      if (tempdata.cmd =='L'){} // "I'm down to the left"
+      else if (tempdata.cmd =='R'){} // "I'm down to the right"
+      else if (tempdata.cmd =='S'){} // "Get ready to standup"
+      else if (tempdata.cmd =='V'){} // "Stand up velocity reached"
+      else if (tempdata.cmd =='B'){} // "Stand up with the brake"
+      else if (tempdata.cmd =='D'){} // "Shutdown"
+      else if (tempdata.cmd =='C'){} // "I'm standing up"
+      Serial.println("Read from buffer");
+    }
+    
+   // control code: 
+  }
+  
+ // Outside the control loop:
+  if (rxbuffer.size() >= 4 ) {
+     get_rx_data();
+    }
 
 }
