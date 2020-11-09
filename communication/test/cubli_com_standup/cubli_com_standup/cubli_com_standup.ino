@@ -107,6 +107,7 @@ void receive() {
 void get_rx_data() {
  if (rxbuffer.isEmpty() != true) { // Print 1 element from buffer.
       tempdata = rxbuffer.shift(); // get packet from buffer.
+      Serial.print("Cubli response: "); Serial.println(tempdata.cmd);
  }  
 }
 
@@ -119,27 +120,36 @@ void setup() {
 
 
 uint8_t test_data;
-
+uint8_t temp;
 
 void loop() 
 { 
+
+  
   if (Serial.available() > 0){
     test_data = Serial.read();
     if(test_data == '+'){
-      Serial1.print(test_data);
-      Serial1.print(test_data);
-      Serial1.print(test_data);
-      while(Serial1.available()<2){if(Serial.available()>0)break;}
-      Serial.print(Serial1.read());
-      Serial.print(Serial1.read());
-      Serial.println(Serial1.read());
+       while(Serial.available() > 0){
+        test_data = Serial.read();
+        Serial1.write(test_data);
+        Serial.write(test_data);
+       }
       }
     else{  
     transmit(test_data, false);
-    Serial.println(test_data);
+    Serial.write(test_data); Serial.println();
     }
   }
+
+
+if(Serial1.available() > 0){
+  temp = Serial1.read();
+  Serial.write(temp);
+  //Serial1.print(temp);
 }
+
+}
+
 
 
 

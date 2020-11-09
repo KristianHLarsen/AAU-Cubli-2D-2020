@@ -47,17 +47,19 @@ void stand_up()
       brake.write(go); // release brake
       standup_timer = millis (); // timer to give the wheel enough time to achieve reference speed
       spw = (((float)(((float)analogRead(SPEED_PIN) - 512)) * (12000.0 / 1024.0)) * rpm2rad); // measure flywheel speed
-      cubli_state = 'S';
-
-      while(tempdata.cmd != 'R' || tempdata.cmd != 'L')
+      
+      while(tempdata.cmd != 'R' && tempdata.cmd != 'L'&& tempdata.cmd != 'S')
       {
+        transmit(cubli_state, true);
         receive();
         get_rx_data();
       }
       
+      cubli_state = 'S';
       transmit(cubli_state, false);
-      if (tempdata.cmd == 'D')  return;
-      while (cubli_state != 'V' && tempdata.cmd != 'V')
+     
+      //if (tempdata.cmd == 'D')  return;
+      while (cubli_state != 'V' || tempdata.cmd != 'V')
       {
         receive();
         get_rx_data();
