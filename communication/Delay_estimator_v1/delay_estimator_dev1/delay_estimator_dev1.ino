@@ -25,6 +25,7 @@ struct delay_est {
   int PacketNumber;
   float est1;
   float est2;
+  float est3;
 };
 
 struct delay_est_full {
@@ -32,6 +33,7 @@ struct delay_est_full {
   int PacketNumber;
   float est1;
   float est2;
+  float est3;
 };
 
 
@@ -94,7 +96,7 @@ void DelayTransmit(uint8_t cmd) {
 void receive() {
   if (Serial1.available() > PACKET_SIZE ) {
     uint8_t cmdtemp = Serial1.read();
-    if (cmdtemp == 'L'||cmdtemp =='R' ||cmdtemp == 'S'||cmdtemp =='V' ||cmdtemp == 'B'||cmdtemp =='C' ||cmdtemp == 'D') {
+    if (cmdtemp == 'L'||cmdtemp =='R' ||cmdtemp == 'S'||cmdtemp =='V' ||cmdtemp == 'B'||cmdtemp =='C' ) {
       // rxcmd= Serial.read();
       for (int k = 0; k < PACKET_SIZE; k++) {
         rxdata.ZBPacket[k] = Serial1.read();
@@ -221,7 +223,7 @@ receive();
  //}
  
    // Print test result dev2
-  if (rxdelaybuffer.size() >= 4 ) {
+  if (rxdelaybuffer.size() >= 1 ) {
      get_delay_data();
      packetdelay = Dtempdata.PacketNumber;
      //packetdelay= packetdelay;

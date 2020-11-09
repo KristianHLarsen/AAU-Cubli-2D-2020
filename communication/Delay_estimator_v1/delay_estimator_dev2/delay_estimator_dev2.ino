@@ -25,6 +25,7 @@ struct delay_est {
   int PacketNumber;
   float est1;
   float est2;
+  float est3;
 };
 
 struct delay_est_full {
@@ -32,6 +33,7 @@ struct delay_est_full {
   int PacketNumber;
   float est1;
   float est2;
+  float est3;
 };
 
 
@@ -184,7 +186,7 @@ void loop() {
   receive();
 
   // transmit packet back dev1
-  if (rxdelaybuffer.size() >= 8 || flag == 1) { //fill buffer before start replying
+  if (rxdelaybuffer.size() >= 1 || flag == 1) { //fill buffer before start replying
     flag = 1;
     if (micros() - timer_var >= ts ||rxdelaybuffer.size() >= 8) {
       timer_var = micros();
