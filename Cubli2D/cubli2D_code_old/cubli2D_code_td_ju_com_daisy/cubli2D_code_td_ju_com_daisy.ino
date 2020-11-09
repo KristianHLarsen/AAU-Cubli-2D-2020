@@ -1,4 +1,4 @@
-//Code for the Cubli2D new
+//Code for the Cubli2D
 //This code is a mix of Cubli2D code from group 730(2019) and 733(2020)
 
 
@@ -74,9 +74,9 @@ int timer_var = 0, time_now = 0, time_last = 0;
 
 // standup vars
 int standup_timer = 0; 
-float spw_ref = 1320*rpm2rad; // standup speed reference for speed controller. RPM converted to rad/s
+float spw_ref = 1400*rpm2rad; // standup speed reference for speed controller. RPM converted to rad/s
 float k4 = 0.03; //gain for standup speed controller
-float spw_tolerance = 50*rpm2rad;
+float spw_tolerance = 10*rpm2rad;
 unsigned long velocity_timer = 0;
 unsigned long velocity_timer_threshold = 3000; // in milliseconds
 
@@ -85,7 +85,6 @@ unsigned long velocity_timer_threshold = 3000; // in milliseconds
 boolean touchdown_start= false;
 int td_spw_ref = 1400*rpm2rad; // touchdown speed reference for speed controller. RPM converted to rad/s
 float k5 = 0.1; //gain for shutdown speed controller
-
 //Communication vars:
 
 uint8_t cubli_state = 'D'; //state of this cubli
