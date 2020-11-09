@@ -74,12 +74,14 @@ int timer_var = 0, time_now = 0, time_last = 0;
 int standup_timer = 0; 
 float spw_ref = 1320*rpm2rad; // standup speed reference for speed controller. RPM converted to rad/s
 float k4 = 0.03; //gain for standup speed controller
+float spw_tolerance = 50*rpm2rad;
 
 
 // touchdown vars
 boolean touchdown_start= false;
 int td_spw_ref = 1400*rpm2rad; // touchdown speed reference for speed controller. RPM converted to rad/s
 float k5 = 0.1; //gain for shutdown speed controller
+
 //Communication vars:
 
 uint8_t cubli_state = 'D'; //state of this cubli
@@ -133,7 +135,7 @@ void transmit(uint8_t cmd, bool timer_enable) {
   {
     if (micros()-transmit_timer > timer_threshold)
     {
-      transmit_timer = micros();
+      transmit_timer = micros();  
       Serial1.write(cmd);
       for (int k = 0; k < PACKET_SIZE; k++) {
         Serial1.write(txdata.ZBPacket[k]);
