@@ -75,6 +75,8 @@ int standup_timer = 0;
 float spw_ref = 1320*rpm2rad; // standup speed reference for speed controller. RPM converted to rad/s
 float k4 = 0.03; //gain for standup speed controller
 float spw_tolerance = 50*rpm2rad;
+unsigned long velocity_timer = 0;
+unsigned long velocity_timer_threshold = 3000; // in milliseconds
 
 
 // touchdown vars
