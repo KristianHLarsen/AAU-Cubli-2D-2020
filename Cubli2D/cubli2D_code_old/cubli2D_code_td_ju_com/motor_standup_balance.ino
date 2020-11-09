@@ -81,7 +81,7 @@ void stand_up()
           duty = (int)interpolate(curr, -CURRENT_MAX, CURRENT_MAX, freq_max, freq_min); // map the current from max to min
           FPGA.analogWrite(PWM_PIN, map(duty, 0, 100, pow(2, bits), 0)); // set pwm of the motor
         }
-        if (abs(spw) < (abs(spw_ref)- spw_tolerance) || abs(spw) > (abs(spw_ref) + spw_tolerance)) cubli_state = 'V'; 
+        if (abs(spw) > (abs(spw_ref)- spw_tolerance) || abs(spw) < (abs(spw_ref) + spw_tolerance)) cubli_state = 'V'; 
         else cubli_state = 'S';
         
         transmit(cubli_state, true);
