@@ -24,7 +24,6 @@ void stand_up()
 {
 
   sensor = 1; //use potentiometer for angle measurements
-  
     if (abs(angle_pot()) > recovery) // if we are down
     {  
       if (angle_pot() > recovery) cubli_state = 'L';
@@ -48,7 +47,7 @@ void stand_up()
       standup_timer = millis (); // timer to give the wheel enough time to achieve reference speed
       spw = (((float)(((float)analogRead(SPEED_PIN) - 512)) * (12000.0 / 1024.0)) * rpm2rad); // measure flywheel speed
       
-      while(tempdata.cmd != 'R' && tempdata.cmd != 'L'&& tempdata.cmd != 'S')
+      while(tempdata.cmd == 'D')
       {
         transmit(cubli_state, true);
         receive();
@@ -61,8 +60,8 @@ void stand_up()
       //if (tempdata.cmd == 'D')  return;
       velocity_timer = millis();
 //      while (cubli_state != 'V' || tempdata.cmd != 'V' && sensor && tempdata.cmd != 'D' )
-      while (cubli_state != 'V' || tempdata.cmd != 'V')
-      {
+      while ((cubli_state != 'V' || tempdata.cmd != 'V') &&  tempdata.cmd != 'B' )
+      { 
         receive();
         get_rx_data();
         if (angle_pot() > 0) //determine the way we fell and spin up accordingly --- negative speed direction => needs positive current
@@ -87,11 +86,20 @@ void stand_up()
           if (abs(spw) > (abs(spw_ref)- spw_tolerance) || abs(spw) < (abs(spw_ref) + spw_tolerance)) cubli_state = 'V'; 
           else cubli_state = 'S';
         }
-        
         transmit(cubli_state, true);
+        if (tempdata.cmd == 'D' || (digitalRead(imuIn) != LOW && digitalRead(potIn) != LOW))
+        {
+          cubli_state = 'D';
+          break;
+        }
+         if (tempdata.cmd == 'C' && cubli_state == 'V')
+        {
+          break;
+        }
       }
 
-
+    if (cubli_state == 'D')  return;
+    
     // Here we are ready to apply the brake!
     cubli_state = 'B';        
     transmit(cubli_state, false);
@@ -107,7 +115,7 @@ void stand_up()
       delay(10);
     }
     cubli_state = 'C';
-    transmit(cubli_state, false);
+    transmit(cubli_state, true);
     filter_setup();
     add_cycle = false;     //ENABLE ANGLE_REF corrections
     sam_start = micros();  //Reset timing parameter since last reading
@@ -117,7 +125,10 @@ void stand_up()
       if (ANGLE_REF > 0.0) ANGLE_REF = 14.0;
       if (ANGLE_REF < 0.0) ANGLE_REF = -14.0;
     }
-  }
+  }else{
+        cubli_state = 'C';
+        transmit(cubli_state,true);
+       }
   sensor = ogsens;         //Switch back to original sensor
 }
 

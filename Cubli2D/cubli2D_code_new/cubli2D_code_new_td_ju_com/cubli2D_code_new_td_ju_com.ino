@@ -140,8 +140,7 @@ void transmit(uint8_t cmd, bool timer_enable) {
       transmit_timer = micros();  
       Serial1.write(cmd);
       for (int k = 0; k < PACKET_SIZE; k++) {
-        Serial1.write(txdata.ZBPacket[k]);
-        
+        Serial1.write(txdata.ZBPacket[k]);        
       }
     }
   }
@@ -252,7 +251,7 @@ void loop()
     balancePoint();  // check if ANGLE_REF needs correction
     stand_up();
   }
-  if (!sensor || tempdata.cmd == 'D')  // sytem is off 
+  if (!sensor || tempdata.cmd == 'D' || cubli_state == 'D')  // sytem is off 
   {
     cubli_state = 'D';
     transmit(cubli_state,true);
@@ -261,10 +260,7 @@ void loop()
     time_last = 0; // reset
     timer_var = 0; // reset time
     time_now = 0;  // reset  
-  }
-
-
-  
+  } 
 }
 
 
