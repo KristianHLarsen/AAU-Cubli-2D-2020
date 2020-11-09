@@ -224,7 +224,7 @@ void loop()
 { 
 
   receive();
-  
+  get_rx_data();
   if (digitalRead(imuIn) == LOW) { // if IMU is choosen physically
     sensor = 2;
     ogsens = 2;
@@ -238,14 +238,14 @@ void loop()
     touchdown_start = true;
   }
   else sensor = 0; // if system is off
-  if (sensor) 
+  if (sensor && tempdata.cmd != 'D') 
   {
     digitalWrite(enable, HIGH); //enable driver for writing
     if (micros() - timer_var >= samp_period) updateMotor(); // if we have waited the sampling time.
     balancePoint();  // check if ANGLE_REF needs correction
     stand_up();
   }
-  if (!sensor)  // sytem is off 
+  if (!sensor || tempdata.cmd == 'D')  // sytem is off 
   {
     if(touchdown_start == true) touchdown(); //if touchdown_start is set to true, call the touchdown() function
     else digitalWrite(enable, LOW); // disable motor driver
