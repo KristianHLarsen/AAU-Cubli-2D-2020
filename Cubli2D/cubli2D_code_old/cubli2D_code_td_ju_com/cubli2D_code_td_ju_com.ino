@@ -230,14 +230,19 @@ void loop()
     ogsens = 2;
     samp_period = 2000; // sampling period
     touchdown_start = true;
+    cubli_state = 'S';
+    transmit(cubli_state,true);
   }
   else if (digitalRead(potIn) == LOW) { // if POT is choosen physically
     sensor = 1;
     ogsens = 1;
     samp_period = 15000; // sampling period
     touchdown_start = true;
+    cubli_state = 'S';
+    transmit(cubli_state,true);
   }
   else sensor = 0; // if system is off
+  
   if (sensor && tempdata.cmd != 'D') 
   {
     digitalWrite(enable, HIGH); //enable driver for writing
@@ -247,11 +252,13 @@ void loop()
   }
   if (!sensor || tempdata.cmd == 'D')  // sytem is off 
   {
+    cubli_state = 'D';
+    transmit(cubli_state,true);
     if(touchdown_start == true) touchdown(); //if touchdown_start is set to true, call the touchdown() function
     else digitalWrite(enable, LOW); // disable motor driver
     time_last = 0; // reset
     timer_var = 0; // reset time
-    time_now = 0;  // reset
+    time_now = 0;  // reset  
   }
 
 
