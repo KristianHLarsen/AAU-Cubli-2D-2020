@@ -45,7 +45,7 @@ Servo brake;
 #define k1 -0.0018077//-0.0316       //SpeedOfWheel
 #define k2 -15.113//-15.6593      //AngleError
 #define k3 -0.5296//-0.5             //SpeedOfFrame
-#define k1_pot -0.001             //SpeedOfWheel - Potentiometer     
+#define k1_pot -0.001             //SpeedOfWheel - Potentiometer
 #define k2_pot -1.0               //AngleError - Potentiometer
 #define k3_pot -0.1               //SpeedOfFrame - Potentiometer
 
@@ -73,7 +73,7 @@ int timer_var = 0, time_now = 0, time_last = 0;
 
 
 // standup vars
-int standup_timer = 0; 
+int standup_timer = 0;
 float spw_ref = 1400*rpm2rad; // standup speed reference for speed controller. RPM converted to rad/s
 float k4 = 0.03; //gain for standup speed controller
 float spw_tolerance = 10*rpm2rad;
@@ -140,10 +140,10 @@ void transmit(uint8_t cmd, bool timer_enable) {
   {
     if (micros()-transmit_timer > timer_threshold)
     {
-      transmit_timer = micros();  
+      transmit_timer = micros();
       Serial1.write(cmd);
       for (int k = 0; k < PACKET_SIZE; k++) {
-        Serial1.write(txdata.ZBPacket[k]);        
+        Serial1.write(txdata.ZBPacket[k]);
       }
     }
   }
@@ -153,7 +153,7 @@ void transmit(uint8_t cmd, bool timer_enable) {
     Serial1.write(cmd);
     for (int k = 0; k < PACKET_SIZE; k++) {
       Serial1.write(txdata.ZBPacket[k]);
-      
+
     }
   }
 }
@@ -188,7 +188,10 @@ void receive() {
 void get_rx_data() {
  if (rxbuffer.isEmpty() != true) { // Print 1 element from buffer.
       tempdata = rxbuffer.shift(); // get packet from buffer.
- }  
+ }
+ while (rxbuffer.size() >= 6){
+   tempdata = rxbuffer.shift(); // Throw packets away if buffer starts to overflow.
+ }
 }
 
 
@@ -208,9 +211,9 @@ void setup() {
   pinMode(enable, OUTPUT);
   pinMode(imuIn, INPUT_PULLUP);
   pinMode(potIn, INPUT_PULLUP);
-  
+
   filter_setup();
-  
+
   brake.write(brk);  //brake motor
   delay(1000);
   brake.write(go);   // release brake
@@ -224,11 +227,11 @@ void setup() {
 
 
 
-void loop() 
-{ 
-    
+void loop()
+{
+
   receive();
-  get_rx_data();
+
   transmit(cubli_state, true);
   if (digitalRead(imuIn) == LOW) { // if IMU is choosen physically
     sensor = 2;
@@ -247,15 +250,18 @@ void loop()
     transmit(cubli_state,true);
   }
   else sensor = 0; // if system is off
-  
-  if (sensor && tempdata.cmd != 'D') 
+
+  if (sensor && tempdata.cmd != 'D')
   {
     digitalWrite(enable, HIGH); //enable driver for writing
-    if (micros() - timer_var >= samp_period) updateMotorDaisy(); // if we have waited the sampling time.
+    if (micros() - timer_var >= samp_period){
+      get_rx_data();
+      updateMotorDaisy();
+    } // if we have waited the sampling time.
     balancePoint();  // check if ANGLE_REF needs correction
     stand_up();
   }
-  if (!sensor || tempdata.cmd == 'D' || cubli_state == 'D')  // sytem is off 
+  if (!sensor || tempdata.cmd == 'D' || cubli_state == 'D')  // sytem is off
   {
     cubli_state = 'D';
     transmit(cubli_state,true);
@@ -263,13 +269,13 @@ void loop()
     else digitalWrite(enable, LOW); // disable motor driver
     time_last = 0; // reset
     timer_var = 0; // reset time
-    time_now = 0;  // reset  
-  } 
+    time_now = 0;  // reset
+  }
 }
 
 
 
-/* 
+/*
 if (micros() - timer_var >= ts) {
   // update values
 
@@ -277,7 +283,7 @@ if (micros() - timer_var >= ts) {
 
   if (rxbuffer.isEmpty() != true) { // Print 1 element from buffer.
       get_rx_data();
-      
+
       if (tempdata.cmd =='L'){} // "I'm down to the left"
       else if (tempdata.cmd =='R'){} // "I'm down to the right"
       else if (tempdata.cmd =='S'){} // "Get ready to standup"
@@ -287,10 +293,10 @@ if (micros() - timer_var >= ts) {
       else if (tempdata.cmd =='C'){} // "I'm standing up"
       Serial.println("Read from buffer");
     }
-    
-   // control code: 
+
+   // control code:
   }
-  
+
  // Outside the control loop:
   if (rxbuffer.size() >= 4 ) {
      get_rx_data();
