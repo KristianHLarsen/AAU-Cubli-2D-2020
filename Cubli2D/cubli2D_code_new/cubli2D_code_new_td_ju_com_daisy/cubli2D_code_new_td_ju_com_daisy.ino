@@ -134,7 +134,7 @@ CircularBuffer<controlData_full, BUFFER_SIZE> rxbuffer;
 // Transmit function
 
 unsigned long transmit_timer = 0;
-unsigned long timer_threshold = 3000; // time after which we can transfer again
+unsigned long timer_threshold = 10000; // time after which we can transfer again
 
 void transmit(uint8_t cmd, bool timer_enable) {
   if(timer_enable)
@@ -232,23 +232,23 @@ void loop()
 {
 
   receive();
-  get_rx_data();
- 
+  //get_rx_data();
+  //transmit(cubli_state, true);
   if (digitalRead(imuIn) == LOW) { // if IMU is choosen physically
     sensor = 2;
     ogsens = 2;
     samp_period = 2000; // sampling period
     touchdown_start = true;
-    cubli_state = 'S';
-    transmit(cubli_state,true);
+    //cubli_state = 'S';
+  //  transmit(cubli_state,true);
   }
   else if (digitalRead(potIn) == LOW) { // if POT is choosen physically
     sensor = 1;
     ogsens = 1;
     samp_period = 15000; // sampling period
     touchdown_start = true;
-    cubli_state = 'S';
-    transmit(cubli_state,true);
+    //cubli_state = 'S';
+    //transmit(cubli_state,true);
   }
   else sensor = 0; // if system is off
 
@@ -257,7 +257,10 @@ void loop()
     digitalWrite(enable, HIGH); //enable driver for writing
     if (micros() - timer_var >= samp_period) {
       get_rx_data();
-      updateMotorDaisy(); // if we have waited the sampling time.
+      if (tempdata.cmd == 'C'){
+      updateMotorDaisy(); //update motor values and calculate control values for the other cubli. 
+      }
+      else updateMotor(); // update motor values and calculate control with own values.
     }
     balancePoint();  // check if ANGLE_REF needs correction
     stand_up();

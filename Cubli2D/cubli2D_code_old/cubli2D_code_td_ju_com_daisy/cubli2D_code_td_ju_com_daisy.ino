@@ -231,27 +231,22 @@ void loop()
 {
 
   receive();
-<<<<<<< HEAD
-
-  transmit(cubli_state, true);
-=======
-  get_rx_data();
->>>>>>> c1b101d65f164a4ce87cc828b97d37c2547f3479
+  //get_rx_data();
   if (digitalRead(imuIn) == LOW) { // if IMU is choosen physically
     sensor = 2;
     ogsens = 2;
     samp_period = 2000; // sampling period
     touchdown_start = true;
-    cubli_state = 'S';
-    transmit(cubli_state,true);
+    //cubli_state = 'S';
+    //transmit(cubli_state,true);
   }
   else if (digitalRead(potIn) == LOW) { // if POT is choosen physically
     sensor = 1;
     ogsens = 1;
     samp_period = 15000; // sampling period
     touchdown_start = true;
-    cubli_state = 'S';
-    transmit(cubli_state,true);
+    //cubli_state = 'S';
+  //  transmit(cubli_state,true);
   }
   else sensor = 0; // if system is off
 
@@ -260,7 +255,10 @@ void loop()
     digitalWrite(enable, HIGH); //enable driver for writing
     if (micros() - timer_var >= samp_period){
       get_rx_data();
-      updateMotorDaisy();
+      if (tempdata.cmd == 'C'){
+      updateMotorDaisy(); //update motor values and calculate control values for the other cubli. 
+      }
+      else updateMotor();// update motor values and calculate control with own values.
     } // if we have waited the sampling time.
     balancePoint();  // check if ANGLE_REF needs correction
     stand_up();

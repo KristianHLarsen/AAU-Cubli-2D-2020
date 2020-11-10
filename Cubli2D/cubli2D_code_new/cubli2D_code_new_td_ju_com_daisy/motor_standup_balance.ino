@@ -109,13 +109,8 @@ void stand_up()
     brake.write(go);      // release brake
     int g = micros();
     add_cycle = true;     //Disable ANGLE_REF corrections
-<<<<<<< HEAD
     while (micros() - g < 1000000) //wait for system to be stable before giving the IMU control
     {
-=======
-    while (micros() - g < 3000000) //wait for system to be stable before giving the IMU control
-    {   
->>>>>>> c1b101d65f164a4ce87cc828b97d37c2547f3479
       updateMotor();
       delay(10);
     }
@@ -130,10 +125,8 @@ void stand_up()
       if (ANGLE_REF > 0.0) ANGLE_REF = 14.0;
       if (ANGLE_REF < 0.0) ANGLE_REF = -14.0;
     }
-  }else{
-        cubli_state = 'C';
-        transmit(cubli_state,true);
-       }
+  }
+
   sensor = ogsens;         //Switch back to original sensor
 }
 
@@ -204,14 +197,9 @@ void updateMotorDaisy() {
 
   txdata.packet.val4 = curr;
   curr_rx = tempdata.val4;
-<<<<<<< HEAD
   cubli_state = 'C';
   transmit(cubli_state,false);
 
-=======
-  transmit(cubli_state,false);
-  
->>>>>>> c1b101d65f164a4ce87cc828b97d37c2547f3479
   duty = (int)interpolate(curr_rx, -CURRENT_MAX, CURRENT_MAX, freq_max, freq_min); // map the current from max to min
   FPGA.analogWrite(PWM_PIN, map(duty, 0, 100, pow(2, bits), 0)); // set pwm of the motor
   if (!add_cycle) cycle_speed[cycle] = spw; // save the speed for the ANGLE_REF correction
