@@ -133,7 +133,7 @@ CircularBuffer<controlData_full, BUFFER_SIZE> rxbuffer;
 // Transmit function
 
 unsigned long transmit_timer = 0;
-unsigned long timer_threshold = 10000; // time after which we can transfer again
+unsigned long timer_threshold = 3000; // time after which we can transfer again
 
 void transmit(uint8_t cmd, bool timer_enable) {
   if(timer_enable)
@@ -231,8 +231,12 @@ void loop()
 {
 
   receive();
+<<<<<<< HEAD
 
   transmit(cubli_state, true);
+=======
+  get_rx_data();
+>>>>>>> c1b101d65f164a4ce87cc828b97d37c2547f3479
   if (digitalRead(imuIn) == LOW) { // if IMU is choosen physically
     sensor = 2;
     ogsens = 2;
