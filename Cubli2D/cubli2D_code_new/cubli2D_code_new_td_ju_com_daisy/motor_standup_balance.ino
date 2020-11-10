@@ -26,6 +26,8 @@ void stand_up()
   sensor = 1; //use potentiometer for angle measurements
     if (abs(angle_pot()) > recovery) // if we are down
     {
+      get_rx_data();
+      transmit(cubli_state, true);
       if (angle_pot() > recovery) cubli_state = 'L';
       else cubli_state = 'R';
       transmit(cubli_state, false);
@@ -109,7 +111,7 @@ void stand_up()
     brake.write(go);      // release brake
     int g = micros();
     add_cycle = true;     //Disable ANGLE_REF corrections
-    while (micros() - g < 1000000) //wait for system to be stable before giving the IMU control
+    while (micros() - g < 3000000) //wait for system to be stable before giving the IMU control
     {
       updateMotor();
       delay(10);

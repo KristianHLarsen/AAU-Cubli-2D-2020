@@ -26,6 +26,8 @@ void stand_up()
   sensor = 1; //use potentiometer for angle measurements
     if (abs(angle_pot()) > recovery) // if we are down
     {  
+      get_rx_data();
+      transmit(cubli_state, true);
       if (angle_pot() > recovery) cubli_state = 'L';
       else cubli_state = 'R';
       transmit(cubli_state, false);

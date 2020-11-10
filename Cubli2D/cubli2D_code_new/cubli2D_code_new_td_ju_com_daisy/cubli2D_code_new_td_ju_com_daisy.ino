@@ -239,16 +239,23 @@ void loop()
     ogsens = 2;
     samp_period = 2000; // sampling period
     touchdown_start = true;
-    //cubli_state = 'S';
-  //  transmit(cubli_state,true);
+    if(cubli_state == 'D' || cubli_state == 'S'){
+      cubli_state = 'S';
+      get_rx_data();
+      transmit(cubli_state,true);
+    }
+    
   }
   else if (digitalRead(potIn) == LOW) { // if POT is choosen physically
     sensor = 1;
     ogsens = 1;
     samp_period = 15000; // sampling period
     touchdown_start = true;
-    //cubli_state = 'S';
-    //transmit(cubli_state,true);
+    if(cubli_state == 'D' || cubli_state == 'S'){
+      cubli_state = 'S';
+      get_rx_data();
+      transmit(cubli_state,true);
+    }
   }
   else sensor = 0; // if system is off
 
