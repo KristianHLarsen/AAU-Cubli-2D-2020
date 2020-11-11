@@ -203,8 +203,23 @@ void updateMotorDaisy() {
   curr_rx = tempdata.val4;
   transmit(cubli_state,false);
   
-  duty = (int)interpolate(curr_rx, -CURRENT_MAX, CURRENT_MAX, freq_max, freq_min); // map the current from max to min
-  FPGA.analogWrite(PWM_PIN, map(duty, 0, 100, pow(2, bits), 0)); // set pwm of the motor
+  if(curr_rx == 0)
+  {
+    if (sensor == 1)  curr = (((k1_pot * spw + k2_pot * ang_err + k3_pot * spf)) / kt); // potentiometer controller
+    if (sensor == 2)  curr = (((k1 * spw + k2 * ang_err + k3 * spf)) / kt);  // IMU controller
+    if (curr >= CURRENT_MAX)  curr = CURRENT_MAX;  // if above max current set equal to max
+    if (curr <= -CURRENT_MAX)  curr = -CURRENT_MAX; // if below min current set equal to min
+    duty = (int)interpolate(curr, -CURRENT_MAX, CURRENT_MAX, freq_max, freq_min); // map the current from max to min
+    FPGA.analogWrite(PWM_PIN, map(duty, 0, 100, pow(2, bits), 0)); // set pwm of the motor
+    motor_torque = kt*curr;
+  }
+  else
+  {
+    duty = (int)interpolate(curr_rx, -CURRENT_MAX, CURRENT_MAX, freq_max, freq_min); // map the current from max to min
+    FPGA.analogWrite(PWM_PIN, map(duty, 0, 100, pow(2, bits), 0)); // set pwm of the motor
+    motor_torque = kt*curr_rx;
+  }
+  
   if (!add_cycle) cycle_speed[cycle] = spw; // save the speed for the ANGLE_REF correction
   if (!add_cycle) cycle++; // add one to the array
   sam_start = timer_var;
@@ -256,4 +271,19 @@ void speed_test()
     if (curr <= -CURRENT_MAX)  curr = -CURRENT_MAX; // if below min current set equal to min 
     duty = (int)interpolate(curr, -CURRENT_MAX, CURRENT_MAX, freq_max, freq_min); // map the current from max to min
     FPGA.analogWrite(PWM_PIN, map(duty, 0, 100, pow(2, bits), 0)); // set pwm of the motor
+}
+
+void print_balance_data()
+{
+    Serial.print(millis());
+    Serial.print("; ");
+    Serial.print(((float)(analogRead(potPin) - 4.0) * (90.0 / 1023.0)) - 45.0); //angle measurement from potentiometer
+    Serial.print("; ");
+    Serial.print(speed_frame_imu()); //speed of the frame from IMU
+    Serial.print("; ");
+    Serial.print(spw);
+    Serial.print("; ");
+    Serial.print(motor_torque);
+    Serial.print("; ");
+    Serial.println(ang_err);
 }

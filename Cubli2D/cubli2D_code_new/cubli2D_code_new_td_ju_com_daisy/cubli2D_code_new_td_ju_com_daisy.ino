@@ -39,12 +39,17 @@ Servo brake;
 #define go 110   //Servo position when running
 
 //controller
-//#define k1 -0.0141//-0.0316       //SpeedOfWheel
-//#define k2 -9.9079//-15.6593      //AngleError
-//#define k3 -0.5//-0.5             //SpeedOfFrame
-#define k1 -0.0018077//-0.0316       //SpeedOfWheel
-#define k2 -15.113//-15.6593      //AngleError
-#define k3 -0.5296//-0.5             //SpeedOfFrame
+#define k1 -0.0004196//-0.0316       //SpeedOfWheel BR
+#define k2 -1.579//-15.6593      //AngleError BR
+#define k3 -0.1662//-0.5             //SpeedOfFrame BR
+
+//#define k1 -0.0141//-0.0316       //SpeedOfWheel Old group
+//#define k2 -9.9079//-15.6593      //AngleError Old group 
+//#define k3 -0.5//-0.5             //SpeedOfFrame Old group
+
+//#define k1 -0.0018077//-0.0316       //SpeedOfWheel
+//#define k2 -15.113//-15.6593      //AngleError
+//#define k3 -0.5296//-0.5             //SpeedOfFrame
 #define k1_pot -0.001             //SpeedOfWheel - Potentiometer
 #define k2_pot -1.0               //AngleError - Potentiometer
 #define k3_pot -0.1               //SpeedOfFrame - Potentiometer
@@ -76,7 +81,7 @@ int timer_var = 0, time_now = 0, time_last = 0;
 int standup_timer = 0;
 float spw_ref = 1320*rpm2rad; // standup speed reference for speed controller. RPM converted to rad/s
 float k4 = 0.03; //gain for standup speed controller
-float spw_tolerance = 50*rpm2rad;
+float spw_tolerance = 10*rpm2rad;
 unsigned long velocity_timer = 0;
 unsigned long velocity_timer_threshold = 3000; // in milliseconds
 
@@ -180,6 +185,7 @@ void receive() {
       rxdatafull.val1 = rxdata.packet.val1;
       rxdatafull.val2 = rxdata.packet.val2;
       rxdatafull.val3 = rxdata.packet.val3;
+      rxdatafull.val4 = rxdata.packet.val4;
       rxbuffer.push(rxdatafull);
       cmdtemp = 0;
     }
@@ -200,6 +206,7 @@ void get_rx_data() {
 void setup() {
   Serial.begin(115200);
   Serial1.begin(115200);
+  
 
   IMUConfig();
 
@@ -257,7 +264,11 @@ void loop()
       transmit(cubli_state,true);
     }
   }
-  else sensor = 0; // if system is off
+  else 
+  {
+    sensor = 0; // if system is off
+    cubli_state = 'D'; //state of this cubli
+  }
 
   if (sensor && tempdata.cmd != 'D')
   {

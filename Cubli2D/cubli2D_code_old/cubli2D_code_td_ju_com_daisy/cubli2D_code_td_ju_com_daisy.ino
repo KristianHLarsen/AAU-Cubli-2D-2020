@@ -39,12 +39,17 @@ Servo brake;
 #define go 110   //Servo position when running
 
 //controller
+#define k1 -0.0004196//-0.0316       //SpeedOfWheel BR
+#define k2 -1.579//-15.6593      //AngleError BR
+#define k3 -0.1662//-0.5             //SpeedOfFrame BR
+
 //#define k1 -0.0141//-0.0316       //SpeedOfWheel
 //#define k2 -9.9079//-15.6593      //AngleError
 //#define k3 -0.5//-0.5             //SpeedOfFrame
-#define k1 -0.0018077//-0.0316       //SpeedOfWheel
-#define k2 -15.113//-15.6593      //AngleError
-#define k3 -0.5296//-0.5             //SpeedOfFrame
+
+//#define k1 -0.0018077//-0.0316       //SpeedOfWheel
+//#define k2 -15.113//-15.6593      //AngleError
+//#define k3 -0.5296//-0.5             //SpeedOfFrame
 #define k1_pot -0.001             //SpeedOfWheel - Potentiometer
 #define k2_pot -1.0               //AngleError - Potentiometer
 #define k3_pot -0.1               //SpeedOfFrame - Potentiometer
@@ -54,7 +59,7 @@ Servo brake;
 #define MPU_addr 0x68 //I2C address for the IMU. (CODE WILL BE STUCK IF NOT CORRECT!)
 double acc_angle_1[2] = {0, 0}, gyro_angle_1[2] = {0, 0}, comp_angle_1[2] = {0, 0}, AcX, AcY, GyZ, az, z;
 int ogsens, sensor = 0 ;  // 2 for imu and 1 for potentiometer, 0 for off
-float mean = 1.0, spw = 0.0, spf = 0.0, angle = 0.0, angle_last = 0.0, angle_speed = 0.0, ang_err = 0.0, curr = 0.0;
+float mean = 1.0, spw = 0.0, spf = 0.0, angle = 0.0, angle_last = 0.0, angle_speed = 0.0, ang_err = 0.0, curr = 0.0, motor_torque = 0.0;
 //values for transmission:
 float spw_rx =0.0, spf_rx = 0.0, ang_err_rx = 0.0, curr_rx = 0.0;
 
@@ -179,6 +184,7 @@ void receive() {
       rxdatafull.val1 = rxdata.packet.val1;
       rxdatafull.val2 = rxdata.packet.val2;
       rxdatafull.val3 = rxdata.packet.val3;
+      rxdatafull.val4 = rxdata.packet.val4;
       rxbuffer.push(rxdatafull);
       cmdtemp = 0;
     }
@@ -211,6 +217,7 @@ void setup() {
   pinMode(enable, OUTPUT);
   pinMode(imuIn, INPUT_PULLUP);
   pinMode(potIn, INPUT_PULLUP);
+
 
   filter_setup();
 
@@ -254,7 +261,11 @@ void loop()
       transmit(cubli_state,true);
     }
   }
-  else sensor = 0; // if system is off
+  else 
+  {
+    sensor = 0; // if system is off
+    cubli_state = 'D';
+  }
 
   if (sensor && tempdata.cmd != 'D')
   {
@@ -268,6 +279,7 @@ void loop()
     } // if we have waited the sampling time.
     balancePoint();  // check if ANGLE_REF needs correction
     stand_up();
+//    print_balance_data();
   }
   if (!sensor || tempdata.cmd == 'D' || cubli_state == 'D')  // sytem is off
   {
