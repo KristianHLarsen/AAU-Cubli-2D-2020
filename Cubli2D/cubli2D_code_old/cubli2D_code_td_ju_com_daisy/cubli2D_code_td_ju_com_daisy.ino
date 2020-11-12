@@ -143,8 +143,7 @@ unsigned long timer_threshold = 3000; // time after which we can transfer again
 void transmit(uint8_t cmd, bool timer_enable) {
   if(timer_enable)
   {
-    if (micros()-transmit_timer > timer_threshold)
-    {
+    if (micros()-transmit_timer > timer_threshold) {
       transmit_timer = micros();
       Serial1.write(cmd);
       for (int k = 0; k < PACKET_SIZE; k++) {
@@ -152,13 +151,11 @@ void transmit(uint8_t cmd, bool timer_enable) {
       }
     }
   }
-  else
-  {
+  else{
     transmit_timer = micros();
     Serial1.write(cmd);
     for (int k = 0; k < PACKET_SIZE; k++) {
       Serial1.write(txdata.ZBPacket[k]);
-
     }
   }
 }
@@ -261,7 +258,7 @@ void loop()
       transmit(cubli_state,true);
     }
   }
-  else 
+  else
   {
     sensor = 0; // if system is off
     cubli_state = 'D';
@@ -273,7 +270,7 @@ void loop()
     if (micros() - timer_var >= samp_period){
       get_rx_data();
       if (tempdata.cmd == 'C'){
-      updateMotorDaisy(); //update motor values and calculate control values for the other cubli. 
+      updateMotorDaisy(); //update motor values and calculate control values for the other cubli.
       }
       else updateMotor();// update motor values and calculate control with own values.
     } // if we have waited the sampling time.
