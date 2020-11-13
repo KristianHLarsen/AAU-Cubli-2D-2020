@@ -44,7 +44,7 @@ Servo brake;
 #define k3 -0.1662//-0.5             //SpeedOfFrame BR
 
 //#define k1 -0.0141//-0.0316       //SpeedOfWheel Old group
-//#define k2 -9.9079//-15.6593      //AngleError Old group 
+//#define k2 -9.9079//-15.6593      //AngleError Old group
 //#define k3 -0.5//-0.5             //SpeedOfFrame Old group
 
 //#define k1 -0.0018077//-0.0316       //SpeedOfWheel
@@ -206,7 +206,7 @@ void get_rx_data() {
 void setup() {
   Serial.begin(115200);
   Serial1.begin(115200);
-  
+
 
   IMUConfig();
 
@@ -244,14 +244,14 @@ void loop()
   if (digitalRead(imuIn) == LOW) { // if IMU is choosen physically
     sensor = 2;
     ogsens = 2;
-    samp_period = 2000; // sampling period
+    samp_period = 8000; // sampling period
     touchdown_start = true;
     if(cubli_state == 'D' || cubli_state == 'S'){
       cubli_state = 'S';
       get_rx_data();
       transmit(cubli_state,true);
     }
-    
+
   }
   else if (digitalRead(potIn) == LOW) { // if POT is choosen physically
     sensor = 1;
@@ -264,7 +264,7 @@ void loop()
       transmit(cubli_state,true);
     }
   }
-  else 
+  else
   {
     sensor = 0; // if system is off
     cubli_state = 'D'; //state of this cubli
@@ -276,7 +276,7 @@ void loop()
     if (micros() - timer_var >= samp_period) {
       get_rx_data();
       if (tempdata.cmd == 'C'){
-      updateMotorDaisy(); //update motor values and calculate control values for the other cubli. 
+      updateMotorDaisy(); //update motor values and calculate control values for the other cubli.
       }
       else updateMotor(); // update motor values and calculate control with own values.
     }

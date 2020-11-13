@@ -239,7 +239,7 @@ void loop()
   if (digitalRead(imuIn) == LOW) { // if IMU is choosen physically
     sensor = 2;
     ogsens = 2;
-    samp_period = 2000; // sampling period
+    samp_period = 8000; // sampling period
     touchdown_start = true;
     if(cubli_state == 'D' || cubli_state == 'S'){
       cubli_state = 'S';
