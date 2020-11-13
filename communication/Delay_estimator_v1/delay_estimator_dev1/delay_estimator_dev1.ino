@@ -100,7 +100,7 @@ int delay_array_handler = 0;
 
 unsigned long receive() {
   if (Serial1.available() > PACKET_SIZE ) {
-    unsigned long delay_time_est =0;
+    unsigned long delay_time_est = 0;
     delay_est_timer = micros();
     if(delay_array_handler > 19)delay_array_handler = 0;
     delay_time[delay_array_handler] = delay_est_timer-delay_est_timer_last;
@@ -130,17 +130,22 @@ unsigned long receive() {
       rxdelaybuffer.push(DelayDataFull);
       cmdtemp = 0;
     }
-    delay_est_timer_last = delay_est_timer;
     for (int i=0; i<19; i++){
       delay_time_est = delay_time[i]+delay_time_est;
     }
     delay_time_est = delay_time_est/20
     Serial.println(delay_time_est);
+    if( delay_timeout < micros() - delay_est_timer_last){
+      delay_est_timer_last = delay_est_timer;
+      return 0;
+    }
+    delay_est_timer_last = delay_est_timer;
     return delay_time_est;
   }
   if( delay_timeout < micros() - delay_est_timer_last){
     return 0;
   }
+
 }
 // get retrieved from buffer value using following command:
 void get_rx_data() {
