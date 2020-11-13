@@ -1,4 +1,4 @@
-//Code for the Cubli2D new
+//Code for the Cubli2D
 //This code is a mix of Cubli2D code from group 730(2019) and 733(2020)
 
 
@@ -45,7 +45,7 @@ Servo brake;
 #define k1 -0.0018077//-0.0316       //SpeedOfWheel
 #define k2 -15.113//-15.6593      //AngleError
 #define k3 -0.5296//-0.5             //SpeedOfFrame
-#define k1_pot -0.001             //SpeedOfWheel - Potentiometer
+#define k1_pot -0.001             //SpeedOfWheel - Potentiometer     
 #define k2_pot -1.0               //AngleError - Potentiometer
 #define k3_pot -0.1               //SpeedOfFrame - Potentiometer
 
@@ -71,10 +71,10 @@ int timer_var = 0, time_now = 0, time_last = 0;
 
 
 // standup vars
-int standup_timer = 0;
-float spw_ref = 1320*rpm2rad; // standup speed reference for speed controller. RPM converted to rad/s
+int standup_timer = 0; 
+float spw_ref = 1400*rpm2rad; // standup speed reference for speed controller. RPM converted to rad/s
 float k4 = 0.03; //gain for standup speed controller
-float spw_tolerance = 50*rpm2rad;
+float spw_tolerance = 10*rpm2rad;
 unsigned long velocity_timer = 0;
 unsigned long velocity_timer_threshold = 3000; // in milliseconds
 
