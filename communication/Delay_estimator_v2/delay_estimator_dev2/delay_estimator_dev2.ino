@@ -2,6 +2,7 @@
 // betweem the two Cubli's
 // buffer doc: https://github.com/rlogiacco/CircularBuffer
 
+const int playout_size = 4;
 
 //Communication:
 //struct for transmitting and receiving data:
@@ -188,7 +189,7 @@ void loop() {
   // transmit packet back dev1
   if (rxdelaybuffer.size() >= 19 || flag == 1) { //fill buffer before start replying
     flag = 1;
-    if (micros() - timer_var >= ts || rxdelaybuffer.size() >= 4) {
+    if (micros() - timer_var >= ts || rxdelaybuffer.size() >=  playout_size) {
       timer_var = micros();
       if (rxdelaybuffer.isEmpty() != true) { // check if buffer is empty: if not then transmit packet.
         get_delay_data();

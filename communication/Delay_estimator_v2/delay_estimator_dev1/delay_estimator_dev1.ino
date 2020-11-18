@@ -1,7 +1,9 @@
 // This sketch is used for testing and devoloping an algorithm for delay estimation
 // betweem the two Cubli's
 // buffer doc: https://github.com/rlogiacco/CircularBuffer
+// For no buffer set 
 
+const int playout_size = 4;
 
 //Communication:
 //struct for transmitting and receiving data:
@@ -237,7 +239,7 @@ receive();
 
  }
  
-  if (rxdelaybuffer.size() >=4 ){
+  if (rxdelaybuffer.size() >=playout_size ){
  // flag =1;
     if (rxdelaybuffer.isEmpty() != true) { // Print 1 element from buffer.
      get_delay_data();

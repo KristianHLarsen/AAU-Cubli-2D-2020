@@ -13,3 +13,8 @@ grid on
 xlabel('Packet number')
 xlabel('Packet number', 'Fontsize',20)
 ylabel('Delay roundtrip (us)', 'Fontsize',20)
+legend('WB1','val1','D','B')
+
+
+
+%%
