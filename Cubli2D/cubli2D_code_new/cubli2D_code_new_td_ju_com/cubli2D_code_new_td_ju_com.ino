@@ -107,17 +107,17 @@ struct controlData_full {
 uint8_t cmd;
 char rxcmd;
 
-union ZIGBEE_Packet_t {
+union ZIGBEE_Packet_t { // Union for making the transmission of data possible with Serial.write(). 
   controlData_t packet;
-  uint8_t ZBPacket[sizeof(controlData_t)];
+  uint8_t ZBPacket[sizeof(controlData_t)]; // Byte array for transmission. 
 };
 
 
 
-ZIGBEE_Packet_t txdata;
-ZIGBEE_Packet_t rxdata;
+ZIGBEE_Packet_t txdata; // Define union used for transmission of packets.  
+ZIGBEE_Packet_t rxdata; // Define union used for receiving packets. 
 
-#define PACKET_SIZE sizeof(txdata.ZBPacket)
+#define PACKET_SIZE sizeof(txdata.ZBPacket) // Packet size definition used in functions for transmitting and receiving. 
 
 // Buffer setup
 #include <CircularBuffer.h>
@@ -133,7 +133,7 @@ unsigned long transmit_timer = 0;
 unsigned long timer_threshold = 10000; // time after which we can transfer again
 
 void transmit(uint8_t cmd, bool timer_enable) {
-  if(timer_enable)
+  if(timer_enable) // if statement used for limiting transmission rate if not regulated by sample time. 
   {
     if (micros()-transmit_timer > timer_threshold)
     {
@@ -147,7 +147,7 @@ void transmit(uint8_t cmd, bool timer_enable) {
   else
   {
     transmit_timer = micros();
-    Serial1.write(cmd);
+    Serial1.write(cmd);// transmit packet 
     for (int k = 0; k < PACKET_SIZE; k++) {
       Serial1.write(txdata.ZBPacket[k]);
       
@@ -165,14 +165,15 @@ void transmit(uint8_t cmd, bool timer_enable) {
 // 'C'  "Im standing up"
 // 'D'  "Shutdown"
 
-void receive() {
+void receive() { 
   while (Serial1.available() > PACKET_SIZE ) {
     uint8_t cmdtemp = Serial1.read();
-    if (cmdtemp == 'L' || cmdtemp == 'R' || cmdtemp == 'S' || cmdtemp == 'V' || cmdtemp == 'B' || cmdtemp == 'C' || cmdtemp == 'D') {
+    if (cmdtemp == 'L' || cmdtemp == 'R' || cmdtemp == 'S' || cmdtemp == 'V' || cmdtemp == 'B' || cmdtemp == 'C' || cmdtemp == 'D') { // make sure we are at a packet start in buffer. 
       for (int k = 0; k < PACKET_SIZE; k++) {
-        rxdata.ZBPacket[k] = Serial1.read();
+        rxdata.ZBPacket[k] = Serial1.read(); // store data in temporary union.
       }
-      rxdatafull.cmd = cmdtemp;
+      // Push data into buffer.
+      rxdatafull.cmd = cmdtemp; 
       rxdatafull.val1 = rxdata.packet.val1;
       rxdatafull.val2 = rxdata.packet.val2;
       rxdatafull.val3 = rxdata.packet.val3;
@@ -183,7 +184,7 @@ void receive() {
 }
 // get retrieved from buffer value using following command:
 void get_rx_data() {
- if (rxbuffer.isEmpty() != true) { // Print 1 element from buffer.
+ if (rxbuffer.isEmpty() != true) { // make sure the theres a packet in buffer. 
       tempdata = rxbuffer.shift(); // get packet from buffer.
  }  
 }
