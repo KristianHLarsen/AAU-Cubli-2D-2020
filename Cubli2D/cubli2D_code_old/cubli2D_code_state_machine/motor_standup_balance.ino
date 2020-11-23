@@ -313,33 +313,39 @@ void hard_brake()
   brake.write(go);      // release brake
 }
 
+
 void state_machine()
 {
   
-  if ((digitalRead(imuIn) == LOW || digitalRead(potIn) == LOW)) { // If switch is switched to IMU or POT  
+  if (sensor == 1 || sensor == 2) { // If switch is switched to IMU or POT  
     
-    if (cubli_state == 'D') fallen_cubli_check();// Change to L/R/C the first time we turn on the system.
+    if (cubli_state == 'D') 
+    {
+      fallen_cubli_check();// Change to L/R/C the first time we turn on the system.
+      Serial.println("debug");
+    }
     
     if(tempdata.cmd != 'D'){                   // if the other Cubli is not OFF 
        
-      if((cubli_state == 'L' || cubli_state == 'R'))
+      if(cubli_state == 'L' || cubli_state == 'R')
       {
         // stop the motor, brake the wheel and change state to 'S'
         FPGA.analogWrite(PWM_PIN, map(50, 0, 100, pow(2, bits), 0)); //stop motor
         delay(200);        //Let it fall completely
         wheel_brake();        
-        cubli_state == 'S';
+        cubli_state = 'S';
         velocity_timer = millis();
       }
       else if((cubli_state == 'S') || (cubli_state =='V' && (tempdata.cmd == 'S' || tempdata.cmd == 'L' || tempdata.cmd == 'R')))
       {
         // accelerate wheel and check for velocity. Change to 'V' when velocity is reached and switch back to 'S' if you lose it       
+        digitalWrite(enable, HIGH);
         startup_speed_control();
         startup_velocity_check();       
       }
       else if(cubli_state =='V' && (tempdata.cmd == 'V' || tempdata.cmd == 'B' || tempdata.cmd == 'C'))
       {
-        cubli_state =='B';      
+        cubli_state = 'B';      
         transmit(cubli_state, false);
         hard_brake();
       }
@@ -355,6 +361,7 @@ void state_machine()
         if (micros() - timer_var >= samp_period) updateMotor(); // if we have waited the sampling time.
         balancePoint();
         fallen_cubli_check();
+        Serial.println("debug2");
       }
       touchdown_start = true;
     } else {  // if the other Cubli is switched OFF

@@ -242,6 +242,12 @@ void loop()
   else sensor = 0; // if system is off
 
   state_machine();
+  Serial.print("Cubli state: ");
+  Serial.write(cubli_state);
+  Serial.print("----");
+  Serial.print("Other Cubli state: ");
+  Serial.write(tempdata.cmd);
+  Serial.println("");
 }
   
 //  if (sensor && tempdata.cmd != 'D') 
