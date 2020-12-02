@@ -3,9 +3,11 @@ close all
 clear all
 %% Load file
 % 1. Timestamp - 2. Potentiometer angle - 3. Gyro speed of frame - 4. Acceleration in X - 5. Acceleration in Y - 6. Speed of wheel
-data = dlmread('kalman-data-3.csv', ',');
-% data = csvread('balance_data_3.csv');
+data = dlmread('balance_data_3.csv', ';');
 
+time = data(:,1);
+time_start = time(1);
+time = time-time_start;
 %1 Time - 2 Potentiometer - 3 Speed frame - 4 AcX - 5 AcY 
 % 6 SPW - 7 Torque - 8 Complementary angle 
 % 9 KF angle - 10 KF frame speed - 11 KF wheel speed - 12 time for KF
@@ -98,19 +100,17 @@ Kalman_poles = eig(A_d - H*K);
 %% %%%%%%% Plotting results %%%%%%%%%%%%%
 figure(1)
 subplot(3, 1, 1)
-% plot(filtered_ang_pos)
-% hold on
-plot(x_post(1,:), 'Linewidth', 1)
+plot(filtered_ang_pos, 'Linewidth', 0.5)
 hold on
-plot(pot, 'Linewidth', 1)
+plot(x_post(1,:), 'Linewidth', 2)
+hold on
+plot(pot, 'Linewidth', 2)
 xlabel('time [ms]') 
 ylabel('\theta_F [rad]') 
-% legend('Complementary filter', 'Kalman filter', 'Raw potentiometer data') %% Add if plot(filtered_ang_pos) is enabled
-legend('Kalman filter', 'Raw potentiometer data') %% Remove this if plot(filtered_ang_pos) is enabled
+legend('Complementary filter', 'Kalman filter', 'Raw potentiometer data') %% Add if plot(filtered_ang_pos) is enabled
+% legend('Kalman filter', 'Raw potentiometer data') %% Remove this if plot(filtered_ang_pos) is enabled
 title('Angular position of frame', 'FontSize', 10);
 
-hold on 
-plot(data(:,9))
 
 
 subplot(3, 1, 2)
@@ -122,8 +122,6 @@ ylabel('\omega_F [rad/s]')
 legend('Kalman filter', 'Raw gyro data') %% Add if plot(filtered_ang_pos) is enabled
 title('Angular velocity of frame', 'FontSize', 10);
 
-hold on 
-plot(data(:,10))
  
 subplot(3, 1, 3)
 plot(x_post(3,:), 'Linewidth', 1)
@@ -133,9 +131,42 @@ xlabel('time [ms]')
 ylabel('\omega_w [rad]') 
 legend('Kalman filter', 'Raw escon data') %% Add if plot(filtered_ang_pos) is enabled
 title('Angular velocity of reaction wheel', 'FontSize', 10);
-hold on 
-plot(data(:,11))
+ 
+%% %%%%%%% Plotting partial results %%%%%%%%%%%%%
+t1 = 1401;
+t2 = 1700;
+
+figure(2)
+subplot(3, 1, 1)
+plot(time(t1:t2), filtered_ang_pos(t1:t2), 'Linewidth', 0.5)
+hold on
+plot(x_post(1,(t1:t2)), 'Linewidth', 2)
+hold on
+plot(pot(t1:t2), 'Linewidth', 2)
+xlabel('time [ms]') 
+ylabel('\theta_F [rad]') 
+legend('Complementary filter', 'Kalman filter', 'Raw potentiometer data', 'Location','southwest') %% Add if plot(filtered_ang_pos) is enabled
+% legend('Kalman filter', 'Raw potentiometer data') %% Remove this if plot(filtered_ang_pos) is enabled
+title('Angular position of frame', 'FontSize', 10);
+
+
+
+subplot(3, 1, 2)
+plot(x_post(2,(t1:t2)), 'Linewidth', 1)
+hold on
+plot (z(2,(t1:t2)))
+xlabel('time [ms]') 
+ylabel('\omega_F [rad/s]') 
+legend('Kalman filter', 'Raw gyroscope data', 'Location','southwest') %% Add if plot(filtered_ang_pos) is enabled
+title('Angular velocity of frame', 'FontSize', 10);
 
  
-
+subplot(3, 1, 3)
+plot(x_post(3,(t1:t2)), 'Linewidth', 1)
+hold on
+plot (z(3,(t1:t2)))
+xlabel('time [ms]') 
+ylabel('\omega_w [rad]') 
+legend('Kalman filter', 'Raw escon driver data', 'Location','southwest') %% Add if plot(filtered_ang_pos) is enabled
+title('Angular velocity of reaction wheel', 'FontSize', 10);
  
