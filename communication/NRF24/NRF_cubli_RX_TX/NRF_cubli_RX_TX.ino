@@ -14,7 +14,7 @@ RF24 radio(7,8);
 
 
 // Used to control whether this node is sending or receiving
-bool role = 0; // set to 1 for transmissions
+bool role = 1; // set to 1 for transmissions
 
 /**
 * Create a data structure for transmitting and receiving data
@@ -70,7 +70,7 @@ void setup() {
 }
 
 void loop(){
-if(role == 1) { 
+if(role == 1) { // transmit if role == 1. 
 if(micros() - timer >ts ){
   TX();
   myTXData.value = myTXData.value + 0.01;
@@ -80,5 +80,4 @@ if(micros() - timer >ts ){
 
 RX();
 
-  
 }
