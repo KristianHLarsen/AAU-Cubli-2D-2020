@@ -70,7 +70,6 @@ if (role == 1)  {
     
     radio.stopListening();                                    // First, stop listening so we can talk.
     
-    
     Serial.println(F("Now sending"));
 
     myData._micros = micros();
@@ -84,7 +83,7 @@ if (role == 1)  {
     boolean timeout = false;                                   // Set up a variable to indicate if a response was received or not
     
     while ( ! radio.available() ){                             // While nothing is received
-      if (micros() - started_waiting_at > 200000 ){            // If waited longer than 200ms, indicate timeout and exit while loop
+      if (micros() - started_waiting_at > 5000){            // If waited longer than 200ms, indicate timeout and exit while loop
           timeout = true;
           break;
       }      
@@ -109,7 +108,7 @@ if (role == 1)  {
     }
 
     // Try again 1s later
-    delay(1000);
+    delay(5);
   }
 
 
