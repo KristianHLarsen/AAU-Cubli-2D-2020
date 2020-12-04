@@ -3,7 +3,7 @@
 // buffer doc: https://github.com/rlogiacco/CircularBuffer
 // For no buffer set 
 
-const int playout_size = 4;
+const int playout_size = 1;
 
 //Communication:
 //struct for transmitting and receiving data:
@@ -169,13 +169,13 @@ int i = 4;
 unsigned long tstop = 0, tdelay = 0, timer_var = 0;
 unsigned long tstart[5001];
 const unsigned long packet_timeout=100000;
-const unsigned long ts = 8000; // Sample time for the system:
+const unsigned long ts = 200000; // Sample time for the system:
 int PacketNumber = 4;
 int packetdelay=0;
 
 bool flag = 0;
 void setup() {
-  Serial.begin(500000);
+  Serial.begin(115200);
   Serial1.begin(115200);
  // pinMode(delay_est1_pin, OUTPUT);
  // pinMode(delay_est2_pin, OUTPUT);

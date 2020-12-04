@@ -2,7 +2,7 @@
 // betweem the two Cubli's
 // buffer doc: https://github.com/rlogiacco/CircularBuffer
 
-const int playout_size = 4;
+const int playout_size = 1;
 
 //Communication:
 //struct for transmitting and receiving data:
