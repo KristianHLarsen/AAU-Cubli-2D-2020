@@ -20,120 +20,38 @@ float speed_frame_imu()
   return (GyZ * 0.0174532925); 
 }
 
-void stand_up()
-{   
-  sensor = 1; //use potentiometer for angle measurements
-  
-    if (abs(angle_pot()) > recovery) // if we are down
-    {  
-      digitalWrite(LED_BUILTIN,HIGH);
-      if (angle_pot() > recovery) cubli_state = 'L';
-      else cubli_state = 'R';
-      transmit(cubli_state, false);
-      FPGA.analogWrite(PWM_PIN, map(50, 0, 100, pow(2, bits), 0)); //stop motor
-      delay(200);        //Let it fall completely
-      if (abs((((float)(((float)analogRead(SPEED_PIN) - 512)) * (12000.0 / 1024.0)) * rpm2rad)) > 100.0) // if we are above a certain speed use ABS brake for not tipping over
-      {
-        for (int o = 0; o < 11; o++)  // function for ABS braking
-        { 
-          brake.write(brk + 3);
-          delay(30);
-          brake.write(go);
-          delay(50);
-        }
-      }
-      brake.write(brk); // normal braking
-      delay(300);
-      brake.write(go); // release brake
-      standup_timer = millis (); // timer to give the wheel enough time to achieve reference speed
-      spw = (((float)(((float)analogRead(SPEED_PIN) - 512)) * (12000.0 / 1024.0)) * rpm2rad); // measure flywheel speed
-      
-      while(tempdata.cmd == 'D')
-      {
-        transmit(cubli_state, true);
-        receive();
-        get_rx_data();
-      }
-      
-      cubli_state = 'S';
-      transmit(cubli_state, false);
-     
-      //if (tempdata.cmd == 'D')  return;
-      velocity_timer = millis();
-//      while (cubli_state != 'V' || tempdata.cmd != 'V' && sensor && tempdata.cmd != 'D' )
-      while ((cubli_state != 'V' || tempdata.cmd != 'V') &&  tempdata.cmd != 'B' )
-      { 
-        receive();
-        get_rx_data();
-        if (angle_pot() > 0) //determine the way we fell and spin up accordingly --- negative speed direction => needs positive current
-        {
-          spw = (((float)(((float)analogRead(SPEED_PIN) - 512)) * (12000.0 / 1024.0)) * rpm2rad); // measure flywheel speed
-          curr = -k4*(-spw_ref-spw); // Flywheel motor speed controller to achieve reference speed. Converted into current that needs to be applied to motor. 
-          if (curr >= CURRENT_MAX)  curr = CURRENT_MAX;  // if above max current set equal to max
-          if (curr <= -CURRENT_MAX)  curr = -CURRENT_MAX; // if below min current set equal to min
-          duty = (int)interpolate(curr, -CURRENT_MAX, CURRENT_MAX, freq_max, freq_min); // map the current from max to min
-          FPGA.analogWrite(PWM_PIN, map(duty, 0, 100, pow(2, bits), 0)); // set pwm of the motor
-        }
-        else //determine the way we fell and spin up accordingly --- positive speed direction => needs negative current
-        {
-          spw = (((float)(((float)analogRead(SPEED_PIN) - 512)) * (12000.0 / 1024.0)) * rpm2rad); // measure flywheel speed
-          curr = -k4*(1.1*spw_ref-spw); // Flywheel motor speed controller to achieve reference speed. Converted into current that needs to be applied to motor. 1.1x multiplier as this side needs higher speed.
-          if (curr >= CURRENT_MAX)  curr = CURRENT_MAX;  // if above max current set equal to max
-          if (curr <= -CURRENT_MAX)  curr = -CURRENT_MAX; // if below min current set equal to min
-          duty = (int)interpolate(curr, -CURRENT_MAX, CURRENT_MAX, freq_max, freq_min); // map the current from max to min
-          FPGA.analogWrite(PWM_PIN, map(duty, 0, 100, pow(2, bits), 0)); // set pwm of the motor
-        }
-        if (millis() - velocity_timer > velocity_timer_threshold){
-          if (abs(spw) > (abs(spw_ref)- spw_tolerance) || abs(spw) < (abs(spw_ref) + spw_tolerance)) cubli_state = 'V'; 
-          else cubli_state = 'S';
-        }
-        transmit(cubli_state, true);
-        if (tempdata.cmd == 'D' || (digitalRead(imuIn) != LOW && digitalRead(potIn) != LOW))
-        {
-          cubli_state = 'D';
-          break;
-        }
-        if (tempdata.cmd == 'C' && cubli_state == 'V')
-        {
-          break;
-        }
-      }
 
-    if (cubli_state == 'D')  return;
-    
-    // Here we are ready to apply the brake!
-    cubli_state = 'B';        
-    transmit(cubli_state, false);
-    digitalWrite(LED_BUILTIN,LOW);
-    
-    brake.write(brk - 5); //brake motor hard to get up properly
-    delay(75);            //wait before disabling the brake
-    brake.write(go);      // release brake
-    int g = micros();
-    add_cycle = true;     //Disable ANGLE_REF corrections
-    while (micros() - g < 1000000) //wait for system to be stable before giving the IMU control
-    {   
-      updateMotor();
-      delay(10);
-    }
-    cubli_state = 'C';
-    transmit(cubli_state, true);
-    filter_setup();
-    add_cycle = false;     //ENABLE ANGLE_REF corrections
-    sam_start = micros();  //Reset timing parameter since last reading
-    timer_var = micros();  // --//--
-    if (abs(ANGLE_REF) > 15.0) // if the angle ref somehow changed a lot, move it back.
+void touchdown_slowdown()
+{
+  sensor = 1;
+  ang_err =  angle_pot();
+  if (abs(ang_err) > 0.75)
+  { 
+    FPGA.analogWrite(PWM_PIN, map(50, 0, 100, pow(2, bits), 0)); //stop motor
+    digitalWrite(enable, LOW); // disable motor driver
+    touchdown_start = false; // disable touchdown_start function
+    fallen_cubli_check();
+    for (int o = 0; o < 11; o++)  // function for ABS braking
     { 
-      if (ANGLE_REF > 0.0) ANGLE_REF = 14.0;
-      if (ANGLE_REF < 0.0) ANGLE_REF = -14.0;
+      brake.write(brk + 3);
+      delay(30);
+      brake.write(go);
+      delay(50);
     }
-  }else{
-        cubli_state = 'C';
-        transmit(cubli_state,true);
-       }
-  sensor = ogsens;         //Switch back to original sensor
+    brake.write(brk); // normal braking
+    delay(300);
+    brake.write(go); // release brake
+    sensor = ogsens;
+  }
+  else if (abs(ang_err) > 0.035)
+  {
+    curr = -touchdown_gain * sin(ang_err);
+    if (curr > CURRENT_MAX) curr = CURRENT_MAX;
+    if (curr < -CURRENT_MAX) curr = -CURRENT_MAX;
+    duty = (int)interpolate(curr, -CURRENT_MAX, CURRENT_MAX, freq_max, freq_min); // map the current from max to min
+    FPGA.analogWrite(PWM_PIN, map(duty, 0, 100, pow(2, bits), 0)); // set pwm of the motor
+  }
 }
-
 
 void balancePoint() { // Change ANGLE_REF if we are at constant wheel velocity
   if (cycle == CHECK_CYCLE) { // if we have enough readings
@@ -354,6 +272,7 @@ void state_machine()
       {
         // update motor for 1 second to stabilise, set all initial parameters and then change state to 'C',
         hard_brake();
+        touchdown_start = true;
         stabilise_setup();
         cubli_state = 'C';
       }
@@ -372,7 +291,7 @@ void state_machine()
       touchdown_start = true;
     } else {  // if the other Cubli is switched OFF
       // call the shutdown procedure
-      if(touchdown_start == true) touchdown();
+      if(touchdown_start == true) touchdown_slowdown();
       else digitalWrite(enable, LOW);
       time_last = 0; // reset
       timer_var = 0; // reset time
@@ -381,7 +300,7 @@ void state_machine()
   }else {
     cubli_state = 'D';
     // call the shutdown procedure
-    if(touchdown_start == true) touchdown(); //if touchdown_start is set to true, call the touchdown() function
+    if(touchdown_start == true) touchdown_slowdown(); //if touchdown_start is set to true, call the touchdown() function
     else digitalWrite(enable, LOW); // disable motor driver
     time_last = 0; // reset
     timer_var = 0; // reset time

@@ -81,8 +81,11 @@ unsigned long velocity_timer_threshold = 3000; // in milliseconds
 
 // touchdown vars
 boolean touchdown_start= false;
-int td_spw_ref = 1400*rpm2rad; // touchdown speed reference for speed controller. RPM converted to rad/s
+float td_spw_ref = 1400*rpm2rad; // touchdown speed reference for speed controller. RPM converted to rad/s
 float k5 = 0.1; //gain for shutdown speed controller
+int touchdown_timer = 0;
+float touchdown_gain = 2*10.6286; //gain for amplifying the current to the motor for touchdown procedure
+char touchdown_side = 0;
 
 //Communication vars:
 
