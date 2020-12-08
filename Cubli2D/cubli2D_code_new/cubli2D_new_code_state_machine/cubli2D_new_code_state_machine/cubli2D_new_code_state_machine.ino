@@ -201,12 +201,12 @@ void setup() {
   for (int a = 0; a < CHECK_CYCLE; a++)  cycle_speed[a] = 0.0;
 
   PWMConfig();
-  pinMode(LED_BUILTIN, OUTPUT);
-  digitalWrite(LED_BUILTIN, HIGH);
+
   pinMode(enable, OUTPUT);
   pinMode(imuIn, INPUT_PULLUP);
   pinMode(potIn, INPUT_PULLUP);
-  
+  pinMode(LED_BUILTIN, OUTPUT);
+  digitalWrite(LED_BUILTIN, HIGH);
   filter_setup();
   
   brake.write(brk);  //brake motor
@@ -227,70 +227,43 @@ void loop()
 
   receive();
   get_rx_data();
+  transmit(cubli_state,true);
   if (digitalRead(imuIn) == LOW) { // if IMU is choosen physically
     sensor = 2;
     ogsens = 2;
     samp_period = 2000; // sampling period
-    touchdown_start = true;
-    cubli_state = 'S';
-    transmit(cubli_state,true);
   }
   else if (digitalRead(potIn) == LOW) { // if POT is choosen physically
     sensor = 1;
     ogsens = 1;
     samp_period = 15000; // sampling period
-    touchdown_start = true;
-    cubli_state = 'S';
-    transmit(cubli_state,true);
   }
   else sensor = 0; // if system is off
-  
-  if (sensor && tempdata.cmd != 'D') 
-  {
-    digitalWrite(enable, HIGH); //enable driver for writing
-    if (micros() - timer_var >= samp_period) updateMotor(); // if we have waited the sampling time.
-    balancePoint();  // check if ANGLE_REF needs correction
-    stand_up();
-  }
-  if (!sensor || tempdata.cmd == 'D' || cubli_state == 'D')  // sytem is off 
-  {
-    cubli_state = 'D';
-    transmit(cubli_state,true);
-    if(touchdown_start == true) touchdown(); //if touchdown_start is set to true, call the touchdown() function
-    else digitalWrite(enable, LOW); // disable motor driver
-    time_last = 0; // reset
-    timer_var = 0; // reset time
-    time_now = 0;  // reset  
-    digitalWrite(LED_BUILTIN, HIGH);
-  } 
+
+  state_machine();
+  Serial.print("Cubli state: ");
+  Serial.write(cubli_state);
+  Serial.print("----");
+  Serial.print("Other Cubli state: ");
+  Serial.write(tempdata.cmd);
+  Serial.println("");
 }
-
-
-
-/* 
-if (micros() - timer_var >= ts) {
-  // update values
-
-
-
-  if (rxbuffer.isEmpty() != true) { // Print 1 element from buffer.
-      get_rx_data();
-      
-      if (tempdata.cmd =='L'){} // "I'm down to the left"
-      else if (tempdata.cmd =='R'){} // "I'm down to the right"
-      else if (tempdata.cmd =='S'){} // "Get ready to standup"
-      else if (tempdata.cmd =='V'){} // "Stand up velocity reached"
-      else if (tempdata.cmd =='B'){} // "Stand up with the brake"
-      else if (tempdata.cmd =='D'){} // "Shutdown"
-      else if (tempdata.cmd =='C'){} // "I'm standing up"
-      Serial.println("Read from buffer");
-    }
-    
-   // control code: 
-  }
   
- // Outside the control loop:
-  if (rxbuffer.size() >= 4 ) {
-     get_rx_data();
-    }
-*/
+//  if (sensor && tempdata.cmd != 'D') 
+//  {
+//    digitalWrite(enable, HIGH); //enable driver for writing
+//    if (micros() - timer_var >= samp_period) updateMotor(); // if we have waited the sampling time.
+//    balancePoint();  // check if ANGLE_REF needs correction
+//    stand_up();
+//  }
+//  if (!sensor || tempdata.cmd == 'D' || cubli_state == 'D')  // sytem is off 
+//  {
+//    cubli_state = 'D';
+//    transmit(cubli_state,true);
+//    if(touchdown_start == true) touchdown(); //if touchdown_start is set to true, call the touchdown() function
+//    else digitalWrite(enable, LOW); // disable motor driver
+//    time_last = 0; // reset
+//    timer_var = 0; // reset time
+//    time_now = 0;  // reset  
+//    digitalWrite(LED_BUILTIN,HIGH);
+//  } 
