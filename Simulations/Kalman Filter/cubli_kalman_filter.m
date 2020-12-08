@@ -133,40 +133,41 @@ legend('Kalman filter', 'Raw escon data') %% Add if plot(filtered_ang_pos) is en
 title('Angular velocity of reaction wheel', 'FontSize', 10);
  
 %% %%%%%%% Plotting partial results %%%%%%%%%%%%%
-t1 = 1401;
-t2 = 1700;
+t1 = 1402;
+t2 = 1675;
 
 figure(2)
 subplot(3, 1, 1)
-plot(time(t1:t2), filtered_ang_pos(t1:t2), 'Linewidth', 0.5)
+plot(time(t1:t2)-time(t1),filtered_ang_pos(t1:t2), 'Linewidth', 0.5)
 hold on
-plot(x_post(1,(t1:t2)), 'Linewidth', 2)
+plot(time(t1:t2)-time(t1),x_post(1,(t1:t2)), 'Linewidth', 2)
 hold on
-plot(pot(t1:t2), 'Linewidth', 2)
+plot(time(t1:t2)-time(t1),pot(t1:t2), 'Linewidth', 2)
 xlabel('time [ms]') 
 ylabel('\theta_F [rad]') 
 legend('Complementary filter', 'Kalman filter', 'Raw potentiometer data', 'Location','southwest') %% Add if plot(filtered_ang_pos) is enabled
 % legend('Kalman filter', 'Raw potentiometer data') %% Remove this if plot(filtered_ang_pos) is enabled
 title('Angular position of frame', 'FontSize', 10);
+grid on
 
 
 
 subplot(3, 1, 2)
-plot(x_post(2,(t1:t2)), 'Linewidth', 1)
+plot(time(t1:t2)-time(t1),x_post(2,(t1:t2)), 'Linewidth', 1)
 hold on
-plot (z(2,(t1:t2)))
+plot (time(t1:t2)-time(t1),z(2,(t1:t2)))
 xlabel('time [ms]') 
 ylabel('\omega_F [rad/s]') 
 legend('Kalman filter', 'Raw gyroscope data', 'Location','southwest') %% Add if plot(filtered_ang_pos) is enabled
 title('Angular velocity of frame', 'FontSize', 10);
-
+grid on
  
 subplot(3, 1, 3)
-plot(x_post(3,(t1:t2)), 'Linewidth', 1)
+plot(time(t1:t2)-time(t1),x_post(3,(t1:t2)), 'Linewidth', 1)
 hold on
-plot (z(3,(t1:t2)))
+plot (time(t1:t2)-time(t1),z(3,(t1:t2)))
 xlabel('time [ms]') 
 ylabel('\omega_w [rad]') 
 legend('Kalman filter', 'Raw escon driver data', 'Location','southwest') %% Add if plot(filtered_ang_pos) is enabled
 title('Angular velocity of reaction wheel', 'FontSize', 10);
- 
+ grid on
