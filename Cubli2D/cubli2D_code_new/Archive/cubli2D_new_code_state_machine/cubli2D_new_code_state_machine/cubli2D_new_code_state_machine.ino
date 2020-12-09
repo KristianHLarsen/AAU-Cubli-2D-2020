@@ -1,4 +1,4 @@
-//Code for the Cubli2D
+//Code for the Cubli2D new
 //This code is a mix of Cubli2D code from group 730(2019) and 733(2020)
 
 
@@ -72,7 +72,7 @@ int timer_var = 0, time_now = 0, time_last = 0;
 
 // standup vars
 int standup_timer = 0; 
-float spw_ref = 1400*rpm2rad; // standup speed reference for speed controller. RPM converted to rad/s
+float spw_ref = 1320*rpm2rad; // standup speed reference for speed controller. RPM converted to rad/s
 float k4 = 0.03; //gain for standup speed controller
 float spw_tolerance = 10*rpm2rad;
 unsigned long velocity_timer = 0;
@@ -140,11 +140,10 @@ void transmit(uint8_t cmd, bool timer_enable) {
   {
     if (micros()-transmit_timer > timer_threshold)
     {
-      transmit_timer = micros();
+      transmit_timer = micros();  
       Serial1.write(cmd);
       for (int k = 0; k < PACKET_SIZE; k++) {
-        Serial1.write(txdata.ZBPacket[k]);
-        
+        Serial1.write(txdata.ZBPacket[k]);        
       }
     }
   }
@@ -224,8 +223,6 @@ void setup() {
   tempdata.cmd = 'D';
 }
 
-
-
 void loop() 
 { 
 
@@ -245,60 +242,6 @@ void loop()
   else sensor = 0; // if system is off
 
   state_machine();
-  Serial.print("Cubli state: ");
-  Serial.write(cubli_state);
-  Serial.print("----");
-  Serial.print("Other Cubli state: ");
-  Serial.write(tempdata.cmd);
-  Serial.println("");
+//  debug_states();
 }
   
-//  if (sensor && tempdata.cmd != 'D') 
-//  {
-//    digitalWrite(enable, HIGH); //enable driver for writing
-//    if (micros() - timer_var >= samp_period) updateMotor(); // if we have waited the sampling time.
-//    balancePoint();  // check if ANGLE_REF needs correction
-//    stand_up();
-//  }
-//  if (!sensor || tempdata.cmd == 'D' || cubli_state == 'D')  // sytem is off 
-//  {
-//    cubli_state = 'D';
-//    transmit(cubli_state,true);
-//    if(touchdown_start == true) touchdown(); //if touchdown_start is set to true, call the touchdown() function
-//    else digitalWrite(enable, LOW); // disable motor driver
-//    time_last = 0; // reset
-//    timer_var = 0; // reset time
-//    time_now = 0;  // reset  
-//    digitalWrite(LED_BUILTIN,HIGH);
-//  } 
-
-
-
-
-/* 
-if (micros() - timer_var >= ts) {
-  // update values
-
-
-
-  if (rxbuffer.isEmpty() != true) { // Print 1 element from buffer.
-      get_rx_data();
-      
-      if (tempdata.cmd =='L'){} // "I'm down to the left"
-      else if (tempdata.cmd =='R'){} // "I'm down to the right"
-      else if (tempdata.cmd =='S'){} // "Get ready to standup"
-      else if (tempdata.cmd =='V'){} // "Stand up velocity reached"
-      else if (tempdata.cmd =='B'){} // "Stand up with the brake"
-      else if (tempdata.cmd =='D'){} // "Shutdown"
-      else if (tempdata.cmd =='C'){} // "I'm standing up"
-      Serial.println("Read from buffer");
-    }
-    
-   // control code: 
-  }
-  
- // Outside the control loop:
-  if (rxbuffer.size() >= 4 ) {
-     get_rx_data();
-    }
-*/

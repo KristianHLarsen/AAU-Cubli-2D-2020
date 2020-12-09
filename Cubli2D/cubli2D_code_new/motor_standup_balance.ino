@@ -1,3 +1,61 @@
+void state_machine()
+{  
+  if (sensor == 1 || sensor == 2) { // If switch is switched to IMU or POT  
+    
+    if (cubli_state == 'D') fallen_cubli_check(); // Change to L/R/C the first time we turn on the system.
+    
+    if(tempdata.cmd != 'D'){                   // if the other Cubli is not OFF 
+
+// ************************************************** STATE MACHINE - BOTH SWITCHES ARE ON *************************************************** //
+
+      if(cubli_state == 'L' || cubli_state == 'R') // If cubli is lying down and both switches are ON
+      {
+        // stop the motor, brake the wheel and change state to 'S'
+        wheel_brake();        
+        cubli_state = 'S';
+        velocity_timer = millis();
+      }
+      else if((cubli_state == 'S') || (cubli_state =='V' && (tempdata.cmd == 'S' || tempdata.cmd == 'L' || tempdata.cmd == 'R'))) // If the Cubli needs to accelerate/keep the velocity for startup
+      {
+        // accelerate wheel and check for velocity. Change to 'V' when velocity is reached and switch back to 'S' if you lose it       
+        digitalWrite(enable, HIGH);
+        startup_speed_control();
+        startup_velocity_check();       
+      }
+      else if(cubli_state =='V' && (tempdata.cmd == 'V' || tempdata.cmd == 'B' || tempdata.cmd == 'C')) // If both Cublis are ready to brake and stand up
+      {
+        cubli_state = 'B';      
+        transmit(cubli_state, false);      
+      }
+      if(cubli_state == 'B')
+      {
+        // update motor for 1 second to stabilise, set all initial parameters and then change state to 'C',
+        hard_brake();
+        touchdown_start = true;
+        stabilise_setup();
+        cubli_state = 'C';
+      }
+      else if(cubli_state == 'C') 
+      {
+        // update motor. Change to 'L' or 'R' if cubli falls
+        digitalWrite(enable, HIGH); //enable driver for writing
+        if (micros() - timer_var >= samp_period)
+        {
+          updateMotor(); // if we have waited the sampling time.
+          balancePoint();
+          fallen_cubli_check();
+        } 
+      }
+      touchdown_start = true;
+      
+// ************************************************** STATE MACHINE - AT LEAST ONE SWITCH IS OFF *************************************************** //    
+    } else shut_down(); //if the other Cubli is switched off
+  } else shut_down(); //if this Cubli is switched off
+}
+
+
+// ************************************************** SUBPROGRAMS ********************************************************************************* // 
+
 float interpolate(float x, float in_min, float in_max, float out_min, float out_max) {
   return (x - in_min) * (out_max - out_min) / (in_max - in_min) + out_min;
 }
@@ -20,38 +78,6 @@ float speed_frame_imu()
   return (GyZ * 0.0174532925); 
 }
 
-
-void touchdown_slowdown()
-{
-  sensor = 1;
-  ang_err =  angle_pot();
-  if (abs(ang_err) > 0.75)
-  { 
-    FPGA.analogWrite(PWM_PIN, map(50, 0, 100, pow(2, bits), 0)); //stop motor
-    digitalWrite(enable, LOW); // disable motor driver
-    touchdown_start = false; // disable touchdown_start function
-    fallen_cubli_check();
-    for (int o = 0; o < 11; o++)  // function for ABS braking
-    { 
-      brake.write(brk + 3);
-      delay(30);
-      brake.write(go);
-      delay(50);
-    }
-    brake.write(brk); // normal braking
-    delay(300);
-    brake.write(go); // release brake
-    sensor = ogsens;
-  }
-  else if (abs(ang_err) > 0.035)
-  {
-    curr = -touchdown_gain * sin(ang_err);
-    if (curr > CURRENT_MAX) curr = CURRENT_MAX;
-    if (curr < -CURRENT_MAX) curr = -CURRENT_MAX;
-    duty = (int)interpolate(curr, -CURRENT_MAX, CURRENT_MAX, freq_max, freq_min); // map the current from max to min
-    FPGA.analogWrite(PWM_PIN, map(duty, 0, 100, pow(2, bits), 0)); // set pwm of the motor
-  }
-}
 
 void balancePoint() { // Change ANGLE_REF if we are at constant wheel velocity
   if (cycle == CHECK_CYCLE) { // if we have enough readings
@@ -94,38 +120,37 @@ void updateMotor() {
   sam_start = timer_var;
 }
 
-//Function for landing the procedure
-void touchdown()
+
+void touchdown_slowdown()
 {
-  sensor = 1; //use potentiometer for angle measurements 
-  ang_err = angle_pot(); // measure the angle of the cubli while falling down.
-  if (ang_err > 0.035 && ang_err < 0.33) // Within this range, start speeding up the wheel to NEG reference speed. 
-  {
-    spw = (((float)(((float)analogRead(SPEED_PIN) - 512)) * (12000.0 / 1024.0)) * rpm2rad); // measure flywheel speed in radians. 
-    curr = -k5*(-td_spw_ref-spw); // Flywheel motor speed controller to achieve reference speed. Converted into current that needs to be applied to motor. 
-    if (curr >= CURRENT_MAX)  curr = CURRENT_MAX;  // if above max current set equal to max
-    if (curr <= -CURRENT_MAX)  curr = -CURRENT_MAX; // if below min current set equal to min
-    duty = (int)interpolate(curr, -CURRENT_MAX, CURRENT_MAX, freq_max, freq_min); // map the current from max to min
-    FPGA.analogWrite(PWM_PIN, map(duty, 0, 100, pow(2, bits), 0)); // set pwm of the motor
-  }
-  else if (ang_err < -0.035 && ang_err > -0.33)  // Within this range, start speeding up the wheel to POS reference speed. 
-  {
-    spw = (((float)(((float)analogRead(SPEED_PIN) - 512)) * (12000.0 / 1024.0)) * rpm2rad); // measure flywheel speed in radians. 
-    curr = -k5*(1.1*td_spw_ref-spw); // Flywheel motor speed controller to achieve reference speed. Converted into current to be applied to motor. 1.1x multiplier as this side needs higher speed. 
-    if (curr >= CURRENT_MAX)  curr = CURRENT_MAX;  // if above max current set equal to max
-    if (curr <= -CURRENT_MAX)  curr = -CURRENT_MAX; // if below min current set equal to min
-    duty = (int)interpolate(curr, -CURRENT_MAX, CURRENT_MAX, freq_max, freq_min); // map the current from max to min
-    FPGA.analogWrite(PWM_PIN, map(duty, 0, 100, pow(2, bits), 0)); // set pwm of the motor
-  }
-  else if (abs(ang_err) > 0.33 && abs(ang_err) < 0.45) // Within this range, brake the wheel to achieve momentum for touchdown
-  {
-    brake.write(brk - 5); //brake motor hard to achieve momentum for touchdown
-    delay (200);
-    brake.write(go); // release brake
+  sensor = 1;
+  ang_err =  angle_pot();
+  if (abs(ang_err) > 0.75)
+  { 
+    FPGA.analogWrite(PWM_PIN, map(50, 0, 100, pow(2, bits), 0)); //stop motor
+    digitalWrite(enable, LOW); // disable motor driver
     touchdown_start = false; // disable touchdown_start function
+    fallen_cubli_check();
+    for (int o = 0; o < 11; o++)  // function for ABS braking
+    { 
+      brake.write(brk + 3);
+      delay(30);
+      brake.write(go);
+      delay(50);
+    }
+    brake.write(brk); // normal braking
+    delay(300);
+    brake.write(go); // release brake
   }
-  else FPGA.analogWrite(PWM_PIN, map(50, 0, 100, pow(2, bits), 0)); //stop controlling the motor
-  sensor = 0;
+  else if (abs(ang_err) > 0.035)
+  {
+    curr = -touchdown_gain * sin(ang_err);
+    if (curr > CURRENT_MAX) curr = CURRENT_MAX;
+    if (curr < -CURRENT_MAX) curr = -CURRENT_MAX;
+    duty = (int)interpolate(curr, -CURRENT_MAX, CURRENT_MAX, freq_max, freq_min); // map the current from max to min
+    FPGA.analogWrite(PWM_PIN, map(duty, 0, 100, pow(2, bits), 0)); // set pwm of the motor
+  }
+  sensor = ogsens;
 }
 
 // function for if it is needed to test different speed references. 
@@ -140,6 +165,16 @@ void speed_test()
     if (curr <= -CURRENT_MAX)  curr = -CURRENT_MAX; // if below min current set equal to min 
     duty = (int)interpolate(curr, -CURRENT_MAX, CURRENT_MAX, freq_max, freq_min); // map the current from max to min
     FPGA.analogWrite(PWM_PIN, map(duty, 0, 100, pow(2, bits), 0)); // set pwm of the motor
+}
+
+void debug_states()
+{
+  Serial.print("Cubli state: ");
+  Serial.write(cubli_state);
+  Serial.print("----");
+  Serial.print("Other Cubli state: ");
+  Serial.write(tempdata.cmd);
+  Serial.println("");
 }
 
 void startup_speed_control()
@@ -220,6 +255,8 @@ void fallen_cubli_check()
 
 void wheel_brake()
 {
+  FPGA.analogWrite(PWM_PIN, map(50, 0, 100, pow(2, bits), 0)); //stop motor
+  delay(200);        //Let it fall completely
   abs_braking();
   brake.write(brk); // normal braking
   delay(300);
@@ -231,80 +268,14 @@ void hard_brake()
   brake.write(brk - 5); // brake motor hard to get up properly
   delay(75);            // wait before disabling the brake
   brake.write(go);      // release brake
-//  delay(1000);
 }
 
-
-void state_machine()
+void shut_down()
 {
-  
-  if (sensor == 1 || sensor == 2) { // If switch is switched to IMU or POT  
-    
-    if (cubli_state == 'D') 
-    {
-      fallen_cubli_check();// Change to L/R/C the first time we turn on the system.
-      Serial.println("debug");
-    }
-    if(tempdata.cmd != 'D'){                   // if the other Cubli is not OFF 
-       
-      if(cubli_state == 'L' || cubli_state == 'R')
-      {
-        // stop the motor, brake the wheel and change state to 'S'
-        FPGA.analogWrite(PWM_PIN, map(50, 0, 100, pow(2, bits), 0)); //stop motor
-        delay(200);        //Let it fall completely
-        wheel_brake();        
-        cubli_state = 'S';
-        velocity_timer = millis();
-      }
-      else if((cubli_state == 'S') || (cubli_state =='V' && (tempdata.cmd == 'S' || tempdata.cmd == 'L' || tempdata.cmd == 'R')))
-      {
-        // accelerate wheel and check for velocity. Change to 'V' when velocity is reached and switch back to 'S' if you lose it       
-        digitalWrite(enable, HIGH);
-        startup_speed_control();
-        startup_velocity_check();       
-      }
-      else if(cubli_state =='V' && (tempdata.cmd == 'V' || tempdata.cmd == 'B' || tempdata.cmd == 'C'))
-      {
-        cubli_state = 'B';      
-        transmit(cubli_state, false);      
-      }
-      if(cubli_state == 'B')
-      {
-        // update motor for 1 second to stabilise, set all initial parameters and then change state to 'C',
-        hard_brake();
-        touchdown_start = true;
-        stabilise_setup();
-        cubli_state = 'C';
-      }
-      else if(cubli_state == 'C')
-      {
-        // update motor. Change to 'L' or 'R' if cubli falls
-        digitalWrite(enable, HIGH); //enable driver for writing
-        if (micros() - timer_var >= samp_period)
-        {
-          updateMotor(); // if we have waited the sampling time.
-          balancePoint();
-          fallen_cubli_check();
-        }
- 
-      }
-      touchdown_start = true;
-    } else {  // if the other Cubli is switched OFF
-      // call the shutdown procedure
-      if(touchdown_start == true) touchdown_slowdown();
-      else digitalWrite(enable, LOW);
-      time_last = 0; // reset
-      timer_var = 0; // reset time
-      time_now = 0;  // reset  
-    }
-  }else {
-    cubli_state = 'D';
-    // call the shutdown procedure
-    if(touchdown_start == true) touchdown_slowdown(); //if touchdown_start is set to true, call the touchdown() function
-    else digitalWrite(enable, LOW); // disable motor driver
-    time_last = 0; // reset
-    timer_var = 0; // reset time
-    time_now = 0;  // reset  
-    
-  }
+   // call the shutdown procedure
+  if(touchdown_start == true) touchdown_slowdown(); // if touchdown_start is set to true, call the shutdown function
+  else digitalWrite(enable, LOW);
+  time_last = 0; // reset
+  timer_var = 0; // reset time
+  time_now = 0;  // reset  
 }

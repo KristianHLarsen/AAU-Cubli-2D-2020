@@ -223,8 +223,6 @@ void setup() {
   tempdata.cmd = 'D';
 }
 
-
-
 void loop() 
 { 
 
@@ -244,29 +242,6 @@ void loop()
   else sensor = 0; // if system is off
 
   state_machine();
-  Serial.print("Cubli state: ");
-  Serial.write(cubli_state);
-  Serial.print("----");
-  Serial.print("Other Cubli state: ");
-  Serial.write(tempdata.cmd);
-  Serial.println("");
+//  debug_states();
 }
   
-//  if (sensor && tempdata.cmd != 'D') 
-//  {
-//    digitalWrite(enable, HIGH); //enable driver for writing
-//    if (micros() - timer_var >= samp_period) updateMotor(); // if we have waited the sampling time.
-//    balancePoint();  // check if ANGLE_REF needs correction
-//    stand_up();
-//  }
-//  if (!sensor || tempdata.cmd == 'D' || cubli_state == 'D')  // sytem is off 
-//  {
-//    cubli_state = 'D';
-//    transmit(cubli_state,true);
-//    if(touchdown_start == true) touchdown(); //if touchdown_start is set to true, call the touchdown() function
-//    else digitalWrite(enable, LOW); // disable motor driver
-//    time_last = 0; // reset
-//    timer_var = 0; // reset time
-//    time_now = 0;  // reset  
-//    digitalWrite(LED_BUILTIN,HIGH);
-//  } 
