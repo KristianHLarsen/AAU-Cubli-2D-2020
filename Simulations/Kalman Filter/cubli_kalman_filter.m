@@ -100,7 +100,7 @@ Kalman_poles = eig(A_d - H*K);
 %% %%%%%%% Plotting results %%%%%%%%%%%%%
 figure(1)
 subplot(3, 1, 1)
-plot(filtered_ang_pos, 'Linewidth', 0.5)
+plot(-filtered_ang_pos, 'Linewidth', 0.5)
 hold on
 plot(x_post(1,:), 'Linewidth', 2)
 hold on
@@ -138,14 +138,14 @@ t2 = 1675;
 
 figure(2)
 subplot(3, 1, 1)
+plot(time(t1:t2)-time(t1),-x_post(1,(t1:t2)), 'Linewidth', 2)
+hold on
 plot(time(t1:t2)-time(t1),filtered_ang_pos(t1:t2), 'Linewidth', 0.5)
 hold on
-plot(time(t1:t2)-time(t1),x_post(1,(t1:t2)), 'Linewidth', 2)
-hold on
-plot(time(t1:t2)-time(t1),pot(t1:t2), 'Linewidth', 2)
+plot(time(t1:t2)-time(t1),-pot(t1:t2), 'Linewidth', 2)
 xlabel('time [ms]') 
 ylabel('\theta_F [rad]') 
-legend('Complementary filter', 'Kalman filter', 'Raw potentiometer data', 'Location','southwest') %% Add if plot(filtered_ang_pos) is enabled
+legend( 'Kalman filter','Complementary filter', 'Raw potentiometer data', 'Location','southwest') %% Add if plot(filtered_ang_pos) is enabled
 % legend('Kalman filter', 'Raw potentiometer data') %% Remove this if plot(filtered_ang_pos) is enabled
 title('Angular position of frame', 'FontSize', 10);
 grid on
