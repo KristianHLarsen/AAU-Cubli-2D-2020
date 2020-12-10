@@ -242,6 +242,7 @@ void stabilise_setup()
 
 void fallen_cubli_check()
 {
+  cubli_state = 'P';
   sensor = 1;
   if (abs(angle_pot()) > recovery) // if we are down
   {  
