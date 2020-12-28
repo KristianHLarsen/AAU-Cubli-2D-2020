@@ -273,6 +273,7 @@ void hard_brake()
 
 void shut_down()
 {
+  cubli_state = 'D';
    // call the shutdown procedure
   if(touchdown_start == true) touchdown_slowdown(); // if touchdown_start is set to true, call the shutdown function
   else digitalWrite(enable, LOW);
