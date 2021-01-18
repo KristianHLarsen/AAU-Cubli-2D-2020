@@ -3,7 +3,8 @@ void state_machine()
   if (sensor == 1 || sensor == 2) { // If switch is switched to IMU or POT  
     
     if (cubli_state == 'D') fallen_cubli_check(); // Change to L/R/C the first time we turn on the system.
-    
+    Serial.write(cubli_state);
+    Serial.println("");
     if(tempdata.cmd != 'D'){                   // if the other Cubli is not OFF 
 
 // ************************************************** STATE MACHINE - BOTH SWITCHES ARE ON *************************************************** //
@@ -50,7 +51,11 @@ void state_machine()
       
 // ************************************************** STATE MACHINE - AT LEAST ONE SWITCH IS OFF *************************************************** //    
     } else shut_down(); //if the other Cubli is switched off
-  } else shut_down(); //if this Cubli is switched off
+  } else
+  {
+    cubli_state = 'D';
+    shut_down(); //if this Cubli is switched off
+  }
 }
 
 
@@ -273,7 +278,6 @@ void hard_brake()
 
 void shut_down()
 {
-  cubli_state = 'D';
    // call the shutdown procedure
   if(touchdown_start == true) touchdown_slowdown(); // if touchdown_start is set to true, call the shutdown function
   else digitalWrite(enable, LOW);

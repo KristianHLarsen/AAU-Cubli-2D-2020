@@ -1,3 +1,4 @@
+
 //Code for the Cubli2D new
 //This code is a mix of Cubli2D code from group 730(2019) and 733(2020)
 
@@ -242,6 +243,6 @@ void loop()
   else sensor = 0; // if system is off
 
   state_machine();
-//  debug_states();
+  debug_states();
 }
   

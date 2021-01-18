@@ -245,5 +245,5 @@ void loop()
   else sensor = 0; // if system is off
 
   state_machine();
-  //debug_states();
+  debug_states();
 }
